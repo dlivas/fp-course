@@ -170,8 +170,8 @@ lift2 ::
   -> f a
   -> f b
   -> f c
-lift2 h f f' =
-  h <$> f <*> f'
+lift2 f a b =
+  f <$> a <*> b
   -- error "todo: Course.Applicative#lift2"
 
 -- | Apply a ternary function in the environment.
@@ -346,8 +346,10 @@ sequence ::
   Applicative f =>
   List (f a)
   -> f (List a)
-sequence =
-  error "todo: Course.Applicative#sequence"
+sequence Nil = pure Nil
+sequence (h :. t) =
+  (:.) <$> h <*> (sequence t)
+  -- error "todo: Course.Applicative#sequence"
 
 -- | Replicate an effect a given number of times.
 --
