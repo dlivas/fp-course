@@ -204,8 +204,8 @@ lift3 ::
   -> f b
   -> f c
   -> f d
-lift3 h f f' f'' =
-  h <$> f <*> f' <*> f''
+lift3 h a b c =
+  h <$> a <*> b <*> c
   -- error "todo: Course.Applicative#lift3"
 
 -- | Apply a quaternary function in the environment.
@@ -239,8 +239,8 @@ lift4 ::
   -> f c
   -> f d
   -> f e
-lift4 h f f' f'' f'''=
-  h <$> f <*> f' <*> f''<*> f'''
+lift4 h a b c d =
+  h <$> a <*> b <*> c <*> d
   -- error "todo: Course.Applicative#lift4"
 
 -- | Apply a nullary function in the environment.
@@ -374,8 +374,9 @@ replicateA ::
   Int
   -> f a
   -> f (List a)
-replicateA =
-  error "todo: Course.Applicative#replicateA"
+replicateA n =
+  sequence . (replicate n)
+  -- error "todo: Course.Applicative#replicateA"
 
 -- | Filter a list with a predicate that produces an effect.
 --
@@ -398,12 +399,38 @@ replicateA =
 -- [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]]
 --
 filtering ::
-  Applicative f =>
+  (Applicative f, Eq a) =>
   (a -> f Bool)
   -> List a
   -> f (List a)
-filtering =
-  error "todo: Course.Applicative#filtering"
+filtering p l =
+  ((\(Full a) -> a) <$>) <$> notEmptyInList
+    where
+      notEmptyInList = (filter (/= Empty)) <$> (filteringOpt p l)
+
+filteringOpt ::
+  Applicative f =>
+  (a -> f Bool)
+  -> List a
+  -> f (List (Optional a))
+filteringOpt _ Nil = pure Nil
+filteringOpt p (a :. t) =
+  (:.) <$> (optA <$> (p a)) <*> (filteringOpt p t)
+    where
+      optA b = if b then Full a else Empty
+
+  -- filter p <$> (pure l)
+  --
+  -- const <$> p a <*>
+  -- if (p a)
+  --   then (:.) <$> (pure a) <*> (filtering p t)
+  --   else filtering p t
+
+-- filtering _ Nil = pure Nil
+-- filtering p (a :. t) =
+--   if (p a) == ((const (True)) <$> (p a))
+--     then (:.) <$> (pure a) <*> (filtering p t)
+--     else filtering p t
 
 -----------------------
 -- SUPPORT LIBRARIES --

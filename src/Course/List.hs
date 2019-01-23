@@ -129,7 +129,8 @@ length ::
   -> Int
 length =
   foldLeft
-    (\b _ -> b + 1)
+    -- (\b _ -> b + 1)
+    (const . (+1))
     0
   -- error "todo: Course.List#length"
 
@@ -147,7 +148,8 @@ map ::
   -> List b
 map f =
   foldRight
-    (\a l -> f a :. l)
+    -- (\a l -> f a :. l)
+    ((:.) . f)
     Nil
   -- -OR-
   -- map = M.liftM
