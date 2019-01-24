@@ -171,7 +171,8 @@ lift2 ::
   -> f b
   -> f c
 lift2 f a b =
-  f <$> a <*> b
+  lift1 f a <*> b
+  -- f <$> a <*> b
   -- error "todo: Course.Applicative#lift2"
 
 -- | Apply a ternary function in the environment.
@@ -205,7 +206,8 @@ lift3 ::
   -> f c
   -> f d
 lift3 h a b c =
-  h <$> a <*> b <*> c
+  lift2 h a b <*> c
+  -- h <$> a <*> b <*> c
   -- error "todo: Course.Applicative#lift3"
 
 -- | Apply a quaternary function in the environment.
@@ -240,7 +242,8 @@ lift4 ::
   -> f d
   -> f e
 lift4 h a b c d =
-  h <$> a <*> b <*> c <*> d
+  lift3 h a b  c <*> d
+  -- h <$> a <*> b <*> c <*> d
   -- error "todo: Course.Applicative#lift4"
 
 -- | Apply a nullary function in the environment.
@@ -348,7 +351,7 @@ sequence ::
   -> f (List a)
 sequence Nil = pure Nil
 sequence (h :. t) =
-  (:.) <$> h <*> (sequence t)
+  lift2 (:.) h (sequence t)
   -- error "todo: Course.Applicative#sequence"
 
 -- | Replicate an effect a given number of times.
@@ -375,7 +378,7 @@ replicateA ::
   -> f a
   -> f (List a)
 replicateA n =
-  sequence . (replicate n)
+  sequence . replicate n
   -- error "todo: Course.Applicative#replicateA"
 
 -- | Filter a list with a predicate that produces an effect.
@@ -410,12 +413,12 @@ filtering p l =
     abl = ab <$> l
     ab a = (\b -> (b, a)) <$> (p a)
 
-filtering2 ::
+filtering3 ::
   (Applicative f, Eq a) =>
   (a -> f Bool)
   -> List a
   -> f (List a)
-filtering2 p l =
+filtering3 p l =
   ((\(Full a) -> a) <$>) <$> notEmptyInList
     where
       notEmptyInList = (filter (/= Empty)) <$> (filteringOpt p l)
