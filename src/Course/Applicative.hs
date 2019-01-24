@@ -404,12 +404,11 @@ filtering ::
   -> List a
   -> f (List a)
 filtering p l =
-  (map snd) <$> (filter fst <$> asWithBoolsInF)
+  (map snd) <$> (filter fst <$> fabl)
   where
-    asWithBoolsInF = sequence asWithBools
-    asWithBools = aWithBool <$> l
-    aWithBool a = (\b -> (b, a)) <$> (p a)
-    -- aWithBool a = (\b -> (b, a)) <$> (p a)
+    fabl = sequence abl
+    abl = ab <$> l
+    ab a = (\b -> (b, a)) <$> (p a)
 
 filtering2 ::
   (Applicative f, Eq a) =>
