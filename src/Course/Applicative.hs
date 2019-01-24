@@ -399,11 +399,24 @@ replicateA n =
 -- [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]]
 --
 filtering ::
-  (Applicative f, Eq a) =>
+  Applicative f =>
   (a -> f Bool)
   -> List a
   -> f (List a)
 filtering p l =
+  (map snd) <$> (filter fst <$> asWithBoolsInF)
+  where
+    asWithBoolsInF = sequence asWithBools
+    asWithBools = aWithBool <$> l
+    aWithBool a = (\b -> (b, a)) <$> (p a)
+    -- aWithBool a = (\b -> (b, a)) <$> (p a)
+
+filtering2 ::
+  (Applicative f, Eq a) =>
+  (a -> f Bool)
+  -> List a
+  -> f (List a)
+filtering2 p l =
   ((\(Full a) -> a) <$>) <$> notEmptyInList
     where
       notEmptyInList = (filter (/= Empty)) <$> (filteringOpt p l)
@@ -418,19 +431,6 @@ filteringOpt p (a :. t) =
   (:.) <$> (optA <$> (p a)) <*> (filteringOpt p t)
     where
       optA b = if b then Full a else Empty
-
-  -- filter p <$> (pure l)
-  --
-  -- const <$> p a <*>
-  -- if (p a)
-  --   then (:.) <$> (pure a) <*> (filtering p t)
-  --   else filtering p t
-
--- filtering _ Nil = pure Nil
--- filtering p (a :. t) =
---   if (p a) == ((const (True)) <$> (p a))
---     then (:.) <$> (pure a) <*> (filtering p t)
---     else filtering p t
 
 -----------------------
 -- SUPPORT LIBRARIES --
