@@ -139,7 +139,7 @@ join ::
   f (f a)
   -> f a
 join m =
-  m >>= id
+  id =<< m
   -- error "todo: Course.Monad#join"
 
 -- | Implement a flipped version of @(=<<)@, however, use only
@@ -153,8 +153,9 @@ join m =
   f a
   -> (a -> f b)
   -> f b
-(>>=) =
-  flip (=<<)
+(>>=) m f =
+  join $ f <$> m
+  -- flip (=<<)
   -- error "todo: Course.Monad#(>>=)"
 
 infixl 1 >>=
@@ -171,7 +172,7 @@ infixl 1 >>=
   -> a
   -> f c
 (<=<) f h a =
-  (h a) >>= f
+  f =<< h a
   -- error "todo: Course.Monad#(<=<)"
 
 infixr 1 <=<
