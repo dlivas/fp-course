@@ -76,12 +76,13 @@ instance Applicative List where
     -> List a
     -> List b
   fs <*> as =
-    flatten
-      $
-      foldRight
-        (\f -> ((f <$> as) :.))
-        Nil
-        fs
+    flatten listOfLists
+    where
+      listOfLists =
+        foldRight
+          (\f -> ((f <$> as) :.))
+          Nil
+          fs
     -- error "todo: Course.Apply (<*>)#instance List"
 
 -- | Insert into an Optional.
@@ -242,7 +243,7 @@ lift4 ::
   -> f d
   -> f e
 lift4 h a b c d =
-  lift3 h a b  c <*> d
+  lift3 h a b c <*> d
   -- h <$> a <*> b <*> c <*> d
   -- error "todo: Course.Applicative#lift4"
 
@@ -407,32 +408,9 @@ filtering ::
   -> List a
   -> f (List a)
 filtering p l =
-  (map snd) <$> (filter fst <$> fabl)
+  (map snd) . (filter fst) <$> sequence (baTuples <$> l)
   where
-    fabl = sequence abl
-    abl = ab <$> l
-    ab a = (\b -> (b, a)) <$> (p a)
-
-filtering3 ::
-  (Applicative f, Eq a) =>
-  (a -> f Bool)
-  -> List a
-  -> f (List a)
-filtering3 p l =
-  ((\(Full a) -> a) <$>) <$> notEmptyInList
-    where
-      notEmptyInList = (filter (/= Empty)) <$> (filteringOpt p l)
-
-filteringOpt ::
-  Applicative f =>
-  (a -> f Bool)
-  -> List a
-  -> f (List (Optional a))
-filteringOpt _ Nil = pure Nil
-filteringOpt p (a :. t) =
-  (:.) <$> (optA <$> (p a)) <*> (filteringOpt p t)
-    where
-      optA b = if b then Full a else Empty
+    baTuples a = (\b -> (b, a)) <$> (p a)
 
 -----------------------
 -- SUPPORT LIBRARIES --
