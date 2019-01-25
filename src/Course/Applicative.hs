@@ -299,8 +299,10 @@ lift1 =
   f a
   -> f b
   -> f b
-a *> b =
-  (flip ($)) <$> a <*> (const <$> b)
+(*>) =
+  lift2 (const id)
+-- a *> b =
+--   lift2 (flip ($)) a (const <$> b)
   -- error "todo: Course.Applicative#(*>)"
 
 -- | Apply, discarding the value of the second argument.
@@ -326,8 +328,9 @@ a *> b =
   f b
   -> f a
   -> f b
-b <* a =
-  const <$> b <*> a
+(<*) =
+  lift2 const
+  -- const <$> b <*> a
   -- error "todo: Course.Applicative#(<*)"
 
 -- | Sequences a list of structures to a structure of list.
@@ -350,8 +353,17 @@ sequence ::
   Applicative f =>
   List (f a)
   -> f (List a)
-sequence Nil = pure Nil
-sequence (h :. t) =
+sequence =
+  foldRight
+    (lift2 (:.))
+    (pure Nil)
+
+sequence2 ::
+  Applicative f =>
+  List (f a)
+  -> f (List a)
+sequence2 Nil = pure Nil
+sequence2 (h :. t) =
   lift2 (:.) h (sequence t)
   -- error "todo: Course.Applicative#sequence"
 
