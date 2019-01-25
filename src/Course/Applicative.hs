@@ -111,9 +111,11 @@ instance Applicative Optional where
     Optional (a -> b)
     -> Optional a
     -> Optional b
-  Empty <*> _ = Empty
-  _ <*> Empty = Empty
-  Full f <*> Full a = Full (f a)
+  (<*>) =
+    applyOptional
+  -- Empty <*> _ = Empty
+  -- _ <*> Empty = Empty
+  -- Full f <*> Full a = Full (f a)
     -- error "todo: Course.Apply (<*>)#instance Optional"
 
 -- | Insert into a constant function.
