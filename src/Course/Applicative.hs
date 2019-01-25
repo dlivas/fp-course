@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE TupleSections #-}
 
 module Course.Applicative where
 
@@ -76,13 +77,15 @@ instance Applicative List where
     -> List a
     -> List b
   fs <*> as =
-    flatten listOfLists
-    where
-      listOfLists =
-        foldRight
-          (\f -> ((f <$> as) :.))
-          Nil
-          fs
+    flatMap (<$> as) fs
+  -- fs <*> as =
+  --   flatten listOfLists
+  --   where
+  --     listOfLists =
+  --       foldRight
+  --         (\f -> ((f <$> as) :.))
+  --         Nil
+  --         fs
     -- error "todo: Course.Apply (<*>)#instance List"
 
 -- | Insert into an Optional.
@@ -420,9 +423,8 @@ filtering ::
   -> List a
   -> f (List a)
 filtering p l =
-  (map snd) . (filter fst) <$> sequence (baTuples <$> l)
-  where
-    baTuples a = (\b -> (b, a)) <$> (p a)
+  (map snd) . (filter fst)
+    <$> sequence ((\a -> (, a) <$> (p a)) <$> l)
 
 -----------------------
 -- SUPPORT LIBRARIES --
