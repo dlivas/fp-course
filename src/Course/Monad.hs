@@ -138,8 +138,8 @@ join ::
   Monad f =>
   f (f a)
   -> f a
-join m =
-  id =<< m
+join =
+  (id =<<)
   -- error "todo: Course.Monad#join"
 
 -- | Implement a flipped version of @(=<<)@, however, use only
