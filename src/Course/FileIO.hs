@@ -85,16 +85,20 @@ printFile ::
   FilePath
   -> Chars
   -> IO ()
-printFile =
-  error "todo: Course.FileIO#printFile"
+printFile name contents =
+  putStrLn ("============ " ++ name)
+    *> putStrLn contents
+  -- error "todo: Course.FileIO#printFile"
 
 -- Given a list of (file name and file contents), print each.
 -- Use @printFile@.
 printFiles ::
   List (FilePath, Chars)
   -> IO ()
-printFiles =
-  error "todo: Course.FileIO#printFiles"
+printFiles Nil = putStrLn ""
+printFiles ((name, contents) :. t) =
+  printFile name contents *> printFiles t
+  -- error "todo: Course.FileIO#printFiles"
 
 -- Given a file name, return (file name and file contents).
 -- Use @readFile@.
