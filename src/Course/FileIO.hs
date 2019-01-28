@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE TupleSections #-}
 
 module Course.FileIO where
 
@@ -95,9 +96,10 @@ printFile name contents =
 printFiles ::
   List (FilePath, Chars)
   -> IO ()
-printFiles Nil = putStrLn ""
-printFiles ((name, contents) :. t) =
-  printFile name contents *> printFiles t
+printFiles =
+  foldRight
+    (\(name, contents) -> (printFile name contents *>))
+    (putStrLn "")
   -- error "todo: Course.FileIO#printFiles"
 
 -- Given a file name, return (file name and file contents).
@@ -105,8 +107,9 @@ printFiles ((name, contents) :. t) =
 getFile ::
   FilePath
   -> IO (FilePath, Chars)
-getFile =
-  error "todo: Course.FileIO#getFile"
+getFile name =
+  lift1 (name,) (readFile name)
+  -- error "todo: Course.FileIO#getFile"
 
 -- Given a list of file names, return list of (file name and file contents).
 -- Use @getFile@.
@@ -114,21 +117,29 @@ getFiles ::
   List FilePath
   -> IO (List (FilePath, Chars))
 getFiles =
-  error "todo: Course.FileIO#getFiles"
+  foldRight
+    (lift2 (:.) . getFile)
+    (pure Nil)
+  -- error "todo: Course.FileIO#getFiles"
 
 -- Given a file name, read it and for each line in that file, read and print contents of each.
 -- Use @getFiles@ and @printFiles@.
 run ::
   FilePath
   -> IO ()
-run =
-  error "todo: Course.FileIO#run"
+run name =
+  getFile name
+    >>= return . (\(_, contents) -> lines contents)
+    >>= getFiles
+    >>= printFiles
+  -- error "todo: Course.FileIO#run"
 
 -- /Tip:/ use @getArgs@ and @run@
 main ::
   IO ()
 main =
-  error "todo: Course.FileIO#main"
+  getArgs >>= return . (\(h :. _) -> h) >>= run 
+  -- error "todo: Course.FileIO#main"
 
 ----
 
