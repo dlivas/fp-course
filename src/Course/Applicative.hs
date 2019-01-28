@@ -419,23 +419,34 @@ replicateA n =
 -- >>> filtering (const $ True :. True :.  Nil) (1 :. 2 :. 3 :. Nil)
 -- [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]]
 --
+
+filtering3 ::
+  Applicative f =>
+  (a -> f Bool)
+  -> List a
+  -> f (List a)
+filtering3 p l =
+  map fst . (filter snd) <$> sequence ((\a -> (a,) <$> p a) <$> l)
+
 filtering2 ::
   Applicative f =>
   (a -> f Bool)
   -> List a
   -> f (List a)
 filtering2 p l =
-  map fst . (filter snd) <$> sequence ((\a -> (a,) <$> p a) <$> l)
+  flatten <$> sequence (inList <$> l)
+  where
+    inList a = (\b -> if b then (a :. Nil) else Nil) <$> p a
 
 filtering ::
   Applicative f =>
   (a -> f Bool)
   -> List a
   -> f (List a)
-filtering p l =
-  flatten <$> sequence (inList <$> l)
-  where
-    inList a = (\b -> if b then (a :. Nil) else Nil) <$> p a
+filtering p =
+  foldRight
+    (\a -> lift2 (\b -> if b then (a :.) else id) (p a))
+    (pure Nil)
 
 -----------------------
 -- SUPPORT LIBRARIES --
