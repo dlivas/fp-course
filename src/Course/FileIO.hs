@@ -129,7 +129,7 @@ run ::
   -> IO ()
 run name =
   getFile name
-    >>= return . (\(_, contents) -> lines contents)
+    >>= return . lines . snd
     >>= getFiles
     >>= printFiles
   -- error "todo: Course.FileIO#run"
@@ -138,7 +138,7 @@ run name =
 main ::
   IO ()
 main =
-  getArgs >>= return . (\(h :. _) -> h) >>= run 
+  getArgs >>= return . (\(h :. _) -> h) >>= run
   -- error "todo: Course.FileIO#main"
 
 ----
