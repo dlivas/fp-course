@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE RebindableSyntax #-}
+{-# LANGUAGE TupleSections #-}
 
 module Course.State where
 
@@ -38,8 +39,9 @@ exec ::
   State s a
   -> s
   -> s
-exec =
-  error "todo: Course.State#exec"
+exec (State f) =
+  snd . f
+  -- error "todo: Course.State#exec"
 
 -- | Run the `State` seeded with `s` and retrieve the resulting value.
 --
@@ -48,8 +50,9 @@ eval ::
   State s a
   -> s
   -> a
-eval =
-  error "todo: Course.State#eval"
+eval (State f) =
+  fst . f
+  -- error "todo: Course.State#eval"
 
 -- | A `State` where the state also distributes into the produced value.
 --
@@ -58,7 +61,12 @@ eval =
 get ::
   State s s
 get =
-  error "todo: Course.State#get"
+  State (\x -> (x, x))
+  -- error "todo: Course.State#get"
+get2 ::
+  State s s
+get2 =
+  State ((,) <*> id)
 
 -- | A `State` where the resulting state is seeded with the given value.
 --
@@ -67,8 +75,15 @@ get =
 put ::
   s
   -> State s ()
-put =
-  error "todo: Course.State#put"
+put s =
+  State (\_ -> ((),s))
+
+put1 ::
+  s
+  -> State s ()
+put1 s =
+  State $ lift1 ((),) (const s)
+  -- error "todo: Course.State#put"
 
 -- | Implement the `Functor` instance for `State s`.
 --
@@ -79,8 +94,9 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  (<$>) =
-    error "todo: Course.State#(<$>)"
+  (<$>) f (State g) =
+    State ((\(a, s) -> (f a, s)) . g)
+    -- error "todo: Course.State#(<$>)"
 
 -- | Implement the `Applicative` instance for `State s`.
 --
@@ -97,14 +113,19 @@ instance Applicative (State s) where
   pure ::
     a
     -> State s a
-  pure =
-    error "todo: Course.State pure#instance (State s)"
+  pure a =
+    State (\s -> (a, s))
+    -- error "todo: Course.State pure#instance (State s)"
   (<*>) ::
     State s (a -> b)
     -> State s a
     -> State s b
-  (<*>) =
-    error "todo: Course.State (<*>)#instance (State s)"
+  (<*>) t u =
+    State (\s -> (firstR s, secondR s))
+    where
+      firstR s = (eval t s) (eval u s)
+      secondR s = exec u (exec t s)
+    -- error "todo: Course.State (<*>)#instance (State s)"
 
 -- | Implement the `Bind` instance for `State s`.
 --
