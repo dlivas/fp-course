@@ -39,8 +39,8 @@ exec ::
   State s a
   -> s
   -> s
-exec (State f) =
-  snd . f
+exec s =
+  snd <$> runState s
   -- error "todo: Course.State#exec"
 
 -- | Run the `State` seeded with `s` and retrieve the resulting value.
@@ -50,8 +50,8 @@ eval ::
   State s a
   -> s
   -> a
-eval (State f) =
-  fst . f
+eval s =
+  fst <$> runState s
   -- error "todo: Course.State#eval"
 
 -- | A `State` where the state also distributes into the produced value.
@@ -61,12 +61,13 @@ eval (State f) =
 get ::
   State s s
 get =
-  State (\x -> (x, x))
-  -- error "todo: Course.State#get"
+  State ((,) <*> id)
+
 get2 ::
   State s s
 get2 =
-  State ((,) <*> id)
+  State (\x -> (x, x))
+  -- error "todo: Course.State#get"
 
 -- | A `State` where the resulting state is seeded with the given value.
 --
@@ -96,6 +97,7 @@ instance Functor (State s) where
     -> State s b
   (<$>) f (State g) =
     State ((\(a, s) -> (f a, s)) . g)
+    -- State ((\(a, s) -> (f a, s)) . g)
     -- error "todo: Course.State#(<$>)"
 
 -- | Implement the `Applicative` instance for `State s`.
@@ -121,10 +123,16 @@ instance Applicative (State s) where
     -> State s a
     -> State s b
   (<*>) t u =
-    State (\s -> (firstR s, secondR s))
-    where
-      firstR s = (eval t s) (eval u s)
-      secondR s = exec u (exec t s)
+    State
+      (\s ->  ( (eval t <*> eval u) s
+              , (exec u <$> exec t) s
+              ))
+    -- previous solution:
+    -- State (\s -> (firstR s, secondR s))
+    -- where
+    --   firstR s = (eval t s) (eval u s)
+    --   secondR s = exec u (exec t s)
+    --
     -- error "todo: Course.State (<*>)#instance (State s)"
 
 -- | Implement the `Bind` instance for `State s`.
@@ -139,8 +147,12 @@ instance Monad (State s) where
     (a -> State s b)
     -> State s a
     -> State s b
-  (=<<) =
-    error "todo: Course.State (=<<)#instance (State s)"
+  (=<<) f t =
+    State
+      (\s ->  ( eval (f $ eval t s) s
+              , exec (f $ eval t s) s
+              ))
+    -- error "todo: Course.State (=<<)#instance (State s)"
 
 -- | Find the first element in a `List` that satisfies a given predicate.
 -- It is possible that no element is found, hence an `Optional` result.
