@@ -125,8 +125,12 @@ instance Applicative (State s) where
   (<*>) t u =
     State
       (\s ->  ( (eval t <*> eval u) s
-              , (exec u <$> exec t) s
-              ))
+            , (exec u <$> exec t) s
+            ))
+      -- previous solution:
+      -- (\s ->  ( (eval t <*> eval u) s
+      --         , (exec u <$> exec t) s
+      --         ))
     -- previous solution:
     -- State (\s -> (firstR s, secondR s))
     -- where
@@ -148,10 +152,15 @@ instance Monad (State s) where
     -> State s a
     -> State s b
   (=<<) f t =
-    State
-      (\s ->  ( eval (f $ eval t s) s
-              , exec (f $ eval t s) s
-              ))
+    State $ flip runState <*> (f <$> eval t)
+      -- previous solution:
+      -- State $ flip runState <*> (f <$> eval t)
+      -- previous solution:
+      -- State (\s ->  runState ((f . eval t) s) s)
+      -- previous solution:
+      -- (State \s ->  ( eval (f $ eval t s) s
+      --               , exec (f $ eval t s) s
+      --               ))
     -- error "todo: Course.State (=<<)#instance (State s)"
 
 -- | Find the first element in a `List` that satisfies a given predicate.
@@ -173,8 +182,9 @@ findM ::
   (a -> f Bool)
   -> List a
   -> f (Optional a)
-findM =
-  error "todo: Course.State#findM"
+findM p l =
+  filtering p l >>= return . (Full <$>) >>= return . (headOr Empty)
+  -- error "todo: Course.State#findM"
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
