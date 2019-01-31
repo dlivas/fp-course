@@ -95,9 +95,9 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  (<$>) f (State g) =
-    State ((\(a, s) -> (f a, s)) . g)
-    -- State ((\(a, s) -> (f a, s)) . g)
+  (<$>) f t =
+    State $ (\(a, s) -> (f a, s)) <$> runState t
+    -- State $ (\(a, s) -> (f a, s)) <$> runState t
     -- error "todo: Course.State#(<$>)"
 
 -- | Implement the `Applicative` instance for `State s`.
@@ -125,8 +125,8 @@ instance Applicative (State s) where
   (<*>) t u =
     State
       (\s ->  ( (eval t <*> eval u) s
-            , (exec u <$> exec t) s
-            ))
+              , (exec u <$> exec t) s
+              ))
       -- previous solution:
       -- (\s ->  ( (eval t <*> eval u) s
       --         , (exec u <$> exec t) s
@@ -152,15 +152,17 @@ instance Monad (State s) where
     -> State s a
     -> State s b
   (=<<) f t =
-    State $ flip runState <*> (f <$> eval t)
-      -- previous solution:
-      -- State $ flip runState <*> (f <$> eval t)
-      -- previous solution:
-      -- State (\s ->  runState ((f . eval t) s) s)
-      -- previous solution:
-      -- (State \s ->  ( eval (f $ eval t s) s
-      --               , exec (f $ eval t s) s
-      --               ))
+    State $ (\(a, k) -> runState (f a) k) <$> runState t
+    -- previous solution:
+    -- State $ flip runState <*> (f <$> eval t)
+    -- previous solution:
+    -- State $ flip runState <*> (f <$> eval t)
+    -- previous solution:
+    -- State (\s ->  runState ((f . eval t) s) s)
+    -- previous solution:
+    -- State (\s ->  ( eval (f $ eval t s) s
+    --               , exec (f $ eval t s) s
+    --               ))
     -- error "todo: Course.State (=<<)#instance (State s)"
 
 -- | Find the first element in a `List` that satisfies a given predicate.
@@ -183,7 +185,7 @@ findM ::
   -> List a
   -> f (Optional a)
 findM p l =
-  filtering p l >>= return . (Full <$>) >>= return . (headOr Empty)
+  return . headOr Empty =<< return . map Full =<< filtering p l
   -- error "todo: Course.State#findM"
 
 -- | Find the first element in a `List` that repeats.
@@ -197,8 +199,14 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat =
-  error "todo: Course.State#firstRepeat"
+firstRepeat Nil = Empty
+firstRepeat (_ :. Nil) = Empty
+firstRepeat (a :. b :. t) =
+  if a == b
+    then Full a
+    else firstRepeat (b :. t)
+
+  -- error "todo: Course.State#firstRepeat"
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.
@@ -210,8 +218,12 @@ distinct ::
   Ord a =>
   List a
   -> List a
-distinct =
-  error "todo: Course.State#distinct"
+distinct Nil = Nil
+distinct (x :. t) =
+  if (find (==x) t) == Empty
+    then x :. distinct t
+    else distinct t
+  -- error "todo: Course.State#distinct"
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
 -- In contrast, a sad number (not a happy number) is where the sum of the square of its digits never reaches 1
