@@ -184,8 +184,11 @@ findM ::
   (a -> f Bool)
   -> List a
   -> f (Optional a)
-findM p l =
-  return . headOr Empty =<< return . map Full =<< filtering p l
+findM _ Nil = return Empty
+findM p (a :. t) =
+  p a >>= (\b -> if b then return (Full a) else findM p t)
+  -- previous solution
+  -- return . headOr Empty =<< return . map Full =<< filtering p l
   -- error "todo: Course.State#findM"
 
 -- | Find the first element in a `List` that repeats.
