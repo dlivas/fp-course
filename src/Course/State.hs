@@ -272,7 +272,7 @@ isHappy ::
 isHappy =
   contains 1 <$> firstRepeat <$> produce sumSqrInts
   where
-    digiToSquareInt = (*) <*> id <$> (toInteger . digitToInt)
+    digiToSquareInt = (*) <*> id <$> toInteger <$> digitToInt
     sumSqrInts y =
       foldRight
         (+)
