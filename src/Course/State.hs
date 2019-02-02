@@ -269,8 +269,8 @@ distinct (x :. t) =
 isHappy ::
   Integer
   -> Bool
-isHappy x =
-  contains 1 . firstRepeat $ produce sumSqrInts x
+isHappy =
+  contains 1 <$> firstRepeat <$> produce sumSqrInts
   where
     digiToSquareInt = (*) <*> id <$> (toInteger . digitToInt)
     sumSqrInts y =
