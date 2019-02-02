@@ -97,7 +97,6 @@ instance Functor (State s) where
     -> State s b
   (<$>) f t =
     State $ (\(a, s) -> (f a, s)) <$> runState t
-    -- State $ (\(a, s) -> (f a, s)) <$> runState t
     -- error "todo: Course.State#(<$>)"
 
 -- | Implement the `Applicative` instance for `State s`.
@@ -186,10 +185,10 @@ findM ::
   -> f (Optional a)
 findM _ Nil = return Empty
 findM p (a :. t) =
-  p a >>= (\b -> if b then return (Full a) else findM p t)
-  -- previous solution
-  -- return . headOr Empty =<< return . map Full =<< filtering p l
-  -- error "todo: Course.State#findM"
+  p a >>= \b -> if b then return (Full a) else findM p t
+-- previous solution
+-- return . headOr Empty =<< return . map Full =<< filtering p l
+-- error "todo: Course.State#findM"
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
@@ -202,12 +201,32 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat Nil = Empty
-firstRepeat (_ :. Nil) = Empty
-firstRepeat (a :. b :. t) =
-  if a == b
-    then Full a
-    else firstRepeat (b :. t)
+firstRepeat l =
+  processList Nil l
+  where
+    processList _ Nil = Empty
+    processList s (a :. r) =
+      let
+        found = elem a s
+        ns = if found then s else (a :. s)
+        in
+          if found
+            then Full a
+            else processList ns r
+
+-- Previous Solution:
+-- firstRepeat Nil = Empty
+-- firstRepeat (x :. t) =
+--   if elem x t
+--     then Full x
+--     else firstRepeat t
+-- previous solution:
+-- firstRepeat Nil = Empty
+-- firstRepeat (_ :. Nil) = Empty
+-- firstRepeat (a :. b :. t) =
+--   if a == b
+--     then Full a
+--     else firstRepeat (b :. t)
 
   -- error "todo: Course.State#firstRepeat"
 
@@ -223,9 +242,7 @@ distinct ::
   -> List a
 distinct Nil = Nil
 distinct (x :. t) =
-  if (find (==x) t) == Empty
-    then x :. distinct t
-    else distinct t
+  x :. filter (x /=) t
   -- error "todo: Course.State#distinct"
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
@@ -252,5 +269,26 @@ distinct (x :. t) =
 isHappy ::
   Integer
   -> Bool
-isHappy =
-  error "todo: Course.State#isHappy"
+isHappy x =
+  contains 1 . firstRepeat $ produce sumSqrInts x
+  where
+    digiToSquareInt = (*) <*> id <$> (toInteger .digitToInt)
+    sumSqrInts y =
+      foldRight
+        (+)
+        (0 :: Integer)
+        (digiToSquareInt <$> show' y)
+
+isHappyDebug ::
+  Integer
+  -> List Integer
+isHappyDebug x =
+  take 10 $ produce sumSqrInts x
+  where
+    digiToSquareInt = (*) <*> id <$> (toInteger . digitToInt)
+    sumSqrInts y =
+      foldRight
+        (+)
+        (0 :: Integer)
+        (digiToSquareInt <$> show' y)
+-- error "todo: Course.State#isHappy"
