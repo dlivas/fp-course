@@ -14,9 +14,9 @@ import Course.List
 --     * Phone: string of digits, dots or hyphens but must start with a digit and end with a hash (#)
 data Person =
   Person
-    Int   -- age
-    Chars -- first name
-    Chars -- surname
-    Bool  -- smoker
-    Chars -- phone number
-  deriving (Eq, Show)
+    { age:: Int   -- age
+    , firstName:: Chars -- first name
+    , surname:: Chars -- surname
+    , smoker:: Bool  -- smoker
+    , phoneNumber :: Chars -- phone number
+    } deriving (Eq, Show)

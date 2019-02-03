@@ -66,7 +66,7 @@ get =
 get2 ::
   State s s
 get2 =
-  State (\x -> (x, x))
+  State (\s -> (s, s))
   -- error "todo: Course.State#get"
 
 -- | A `State` where the resulting state is seeded with the given value.
@@ -95,7 +95,7 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  (<$>) f t =
+  f <$> t =
     State $ (\(a, s) -> (f a, s)) <$> runState t
     -- error "todo: Course.State#(<$>)"
 
@@ -121,15 +121,19 @@ instance Applicative (State s) where
     State s (a -> b)
     -> State s a
     -> State s b
-  (<*>) t u =
+  t <*> u =
     State
-      (\s ->  ( (eval t <*> eval u) s
-              , (exec u <$> exec t) s
-              ))
-      -- previous solution:
-      -- (\s ->  ( (eval t <*> eval u) s
-      --         , (exec u <$> exec t) s
-      --         ))
+      (\s ->
+        let
+          (f, n1) = runState t s
+          (a, n2) = runState u n1
+        in
+          (f a, n2)
+      )
+    -- previous solution:
+    -- (\s ->  ( (eval t <*> eval u) s
+    --         , (exec u <$> exec t) s
+    --         ))
     -- previous solution:
     -- State (\s -> (firstR s, secondR s))
     -- where
@@ -150,7 +154,7 @@ instance Monad (State s) where
     (a -> State s b)
     -> State s a
     -> State s b
-  (=<<) f t =
+  f =<< t =
     State $ (\(a, k) -> runState (f a) k) <$> runState t
     -- previous solution:
     -- State $ flip runState <*> (f <$> eval t)
@@ -202,18 +206,30 @@ firstRepeat ::
   List a
   -> Optional a
 firstRepeat l =
-  processList Nil l
+  processList S.empty l
   where
+    examineUnique a = State (\uniqs -> (S.member a uniqs, S.insert a uniqs))
     processList _ Nil = Empty
     processList s (a :. r) =
       let
-        found = elem a s
-        ns = if found then s else (a :. s)
-        in
-          if found
-            then Full a
-            else processList ns r
-
+        (found, ns) = runState (examineUnique a) s
+      in
+        if found
+          then Full a
+          else processList ns r
+-- previous solution:
+-- firstRepeat l =
+--   processList Nil l
+--   where
+--     processList _ Nil = Empty
+--     processList s (a :. r) =
+--       let
+--         found = elem a s
+--         ns = if found then s else (a :. s)
+--         in
+--           if found
+--             then Full a
+--             else processList ns r
 -- Previous Solution:
 -- firstRepeat Nil = Empty
 -- firstRepeat (x :. t) =
