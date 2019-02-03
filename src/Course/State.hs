@@ -125,10 +125,10 @@ instance Applicative (State s) where
     State
       (\s ->
         let
-          (f, n1) = runState t s
-          (a, n2) = runState u n1
+          (f, s1) = runState t s
+          (a, s2) = runState u s1
         in
-          (f a, n2)
+          (f a, s2)
       )
     -- previous solution:
     -- (\s ->  ( (eval t <*> eval u) s
@@ -189,7 +189,10 @@ findM ::
   -> f (Optional a)
 findM _ Nil = return Empty
 findM p (a :. t) =
-  p a >>= \b -> if b then return (Full a) else findM p t
+  p a >>=
+    \b -> if b
+            then return (Full a)
+            else findM p t
 -- previous solution
 -- return . headOr Empty =<< return . map Full =<< filtering p l
 -- error "todo: Course.State#findM"
@@ -206,17 +209,47 @@ firstRepeat ::
   List a
   -> Optional a
 firstRepeat l =
-  processList S.empty l
+  return . (\((a :. _), _, _) -> a)
+    =<< find
+          (\(r, _, _) -> r /= Nil)
+          (produce examineNext (Nil, S.empty, l))
   where
-    examineUnique a = State (\uniqs -> (S.member a uniqs, S.insert a uniqs))
-    processList _ Nil = Empty
-    processList s (a :. r) =
-      let
-        (found, ns) = runState (examineUnique a) s
-      in
-        if found
-          then Full a
-          else processList ns r
+    examineNext (repeated, uniques, Nil) =
+      (repeated, uniques, Nil)
+
+    examineNext (repeated, uniques, (a :. t)) =
+      ( if S.member a uniques
+        then (a :. repeated)
+        else repeated
+      , S.insert a uniques
+      , t
+      )
+-- Previous solution:
+-- firstRepeat =
+--   processList Nil
+--   where
+--     examineUnique a = State (\uniqs -> (elem a uniqs, (a :. uniqs)))
+--     processList _ Nil = Empty
+--     processList s (a :. t) =
+--       let
+--         (found, ns) = runState (examineUnique a) s
+--       in
+--         if found
+--           then Full a
+--           else processList ns t
+-- Previous Solution:
+-- firstRepeat =
+--   processList S.empty
+--   where
+--     examineUnique a = State (\uniqs -> (S.member a uniqs, S.insert a uniqs))
+--     processList _ Nil = Empty
+--     processList s (a :. t) =
+--       let
+--         (found, ns) = runState (examineUnique a) s
+--       in
+--         if found
+--           then Full a
+--           else processList ns t
 -- previous solution:
 -- firstRepeat l =
 --   processList Nil l
@@ -288,12 +321,17 @@ isHappy ::
 isHappy =
   contains 1 <$> firstRepeat <$> produce sumSqrInts
   where
-    digiToSquareInt = (*) <*> id <$> toInteger <$> digitToInt
-    sumSqrInts y =
-      foldRight
-        (+)
-        (0 :: Integer)
-        (digiToSquareInt <$> show' y)
+    sumSqrInts = toInteger <$> sum <$> map (join (*) <$> digitToInt) <$> show'
+-- Previous solution:
+-- isHappy =
+--   contains 1 <$> firstRepeat <$> produce sumSqrInts
+--   where
+--     digiToSquareInt = (*) <*> id <$> toInteger <$> digitToInt
+--     sumSqrInts y =
+--       foldRight
+--         (+)
+--         (0 :: Integer)
+--         (digiToSquareInt <$> show' y)
 
 isHappyDebug ::
   Integer
