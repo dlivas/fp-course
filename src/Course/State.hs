@@ -209,15 +209,15 @@ firstRepeat ::
   List a
   -> Optional a
 firstRepeat l =
-  return . (\((a :. _), _, _) -> a)
+  return . (\((a :. _), _, _) -> a) -- (list of repeated, pricessed elems, to be processed elems)
     =<< find
           (\(r, _, _) -> r /= Nil)
-          (produce examineNext (Nil, S.empty, l))
+          (produce nextState (Nil, S.empty, l))
   where
-    examineNext (repeated, uniques, Nil) =
+    nextState (repeated, uniques, Nil) =
       (repeated, uniques, Nil)
 
-    examineNext (repeated, uniques, (a :. t)) =
+    nextState (repeated, uniques, (a :. t)) =
       ( if S.member a uniques
         then (a :. repeated)
         else repeated
