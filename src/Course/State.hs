@@ -209,21 +209,31 @@ firstRepeat ::
   List a
   -> Optional a
 firstRepeat l =
-  return . (\((a :. _), _, _) -> a) -- (list of repeated, pricessed elems, to be processed elems)
+  (\(a, _, _, _) -> a)
     =<< find
-          (\(r, _, _) -> r /= Nil)
-          (produce nextState (Nil, S.empty, l))
-  where
-    nextState (repeated, uniques, Nil) =
-      (repeated, uniques, Nil)
+          (\(_, b, _, _) -> not b)
+          (repeatedAndUniques l)
 
-    nextState (repeated, uniques, (a :. t)) =
-      ( if S.member a uniques
-        then (a :. repeated)
-        else repeated
+-- tuple elems: (current a, a isNotRepeated, unique elems, to be processed elems)
+repeatedAndUniques ::
+  Ord a =>
+  List a
+  -> List (Optional a, Bool, S.Set a, List a)
+repeatedAndUniques =
+  removeEmpty . (produce nextState) . (Empty, True, S.empty,)
+  where
+    nextState (_, _, uniques, Nil) =
+      (Empty, False, uniques, Nil)
+
+    nextState (_, _, uniques, (a :. t)) =
+      ( Full a
+      , not (S.member a uniques)
       , S.insert a uniques
       , t
       )
+
+    removeEmpty = filter (\(a, _, _, _) -> a /= Empty)
+
 -- Previous solution:
 -- firstRepeat =
 --   processList Nil
@@ -289,9 +299,15 @@ distinct ::
   Ord a =>
   List a
   -> List a
-distinct Nil = Nil
-distinct (x :. t) =
-  x :. filter (x /=) t
+distinct =
+  uniqueElems . uniqueElemTuples . repeatedAndUniques
+  where
+    uniqueElems = map (\(Full a, _, _, _) -> a)
+    uniqueElemTuples = filter (\(_, b, _, _) -> b)
+-- previous soulution:
+-- distinct Nil = Nil
+-- distinct (x :. t) =
+--   x :. filter (x /=) t
   -- error "todo: Course.State#distinct"
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
