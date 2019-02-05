@@ -220,7 +220,7 @@ repeatedAndUniques ::
   List a
   -> List (Optional a, Bool, S.Set a, List a)
 repeatedAndUniques =
-  removeEmpty . (produce nextState) . (Empty, True, S.empty,)
+  removeEmpty . produce nextState . (Empty, True, S.empty,)
   where
     nextState (_, _, uniques, Nil) =
       (Empty, False, uniques, Nil)
@@ -352,13 +352,8 @@ isHappy =
 isHappyDebug ::
   Integer
   -> List Integer
-isHappyDebug x =
-  take 10 $ produce sumSqrInts x
+isHappyDebug =
+  take 10 . produce sumSqrInts
   where
-    digiToSquareInt = (*) <*> id <$> (toInteger . digitToInt)
-    sumSqrInts y =
-      foldRight
-        (+)
-        (0 :: Integer)
-        (digiToSquareInt <$> show' y)
+    sumSqrInts = toInteger <$> sum <$> map (join (*) <$> digitToInt) <$> show'
 -- error "todo: Course.State#isHappy"
