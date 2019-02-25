@@ -3,6 +3,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 
 module Course.StateT where
 
@@ -39,8 +40,9 @@ instance Functor f => Functor (StateT s f) where
     (a -> b)
     -> StateT s f a
     -> StateT s f b
-  (<$>) =
-    error "todo: Course.StateT (<$>)#instance (StateT s f)"
+  f <$> StateT t =
+    StateT (((\(a, s) -> (f a, s)) <$> ) . t)
+    -- error "todo: Course.StateT (<$>)#instance (StateT s f)"
 
 -- | Implement the `Applicative` instance for @StateT s f@ given a @Monad f@.
 --
@@ -64,13 +66,20 @@ instance Monad f => Applicative (StateT s f) where
     a
     -> StateT s f a
   pure =
-    error "todo: Course.StateT pure#instance (StateT s f)"
+    (\a -> StateT (\s -> pure (a, s)))
+    -- error "todo: Course.StateT pure#instance (StateT s f)"
   (<*>) ::
     StateT s f (a -> b)
     -> StateT s f a
     -> StateT s f b
-  (<*>) =
-    error "todo: Course.StateT (<*>)#instance (StateT s f)"
+  StateT t <*> StateT u =
+    StateT
+      (\s ->
+          t s
+            >>= (\(f, s1) -> ((f,) <$> u s1))
+            >>= pure . (\(f, (a, s2)) -> (f a, s2))
+            )
+    -- error "todo: Course.StateT (<*>)#instance (StateT s f)"
 
 -- | Implement the `Monad` instance for @StateT s f@ given a @Monad f@.
 -- Make sure the state value is passed through in `bind`.
@@ -85,8 +94,13 @@ instance Monad f => Monad (StateT s f) where
     (a -> StateT s f b)
     -> StateT s f a
     -> StateT s f b
-  (=<<) =
-    error "todo: Course.StateT (=<<)#instance (StateT s f)"
+  f =<< StateT t =
+    StateT
+      (\s ->
+        t s
+          >>= (\(a, s1) -> runStateT (f a) s1)
+        )
+    -- error "todo: Course.StateT (=<<)#instance (StateT s f)"
 
 -- | A `State'` is `StateT` specialised to the `ExactlyOne` functor.
 type State' s a =
@@ -99,8 +113,9 @@ type State' s a =
 state' ::
   (s -> (a, s))
   -> State' s a
-state' =
-  error "todo: Course.StateT#state'"
+state' f =
+  StateT (ExactlyOne . f)
+  -- error "todo: Course.StateT#state'"
 
 -- | Provide an unwrapper for `State'` values.
 --
@@ -110,8 +125,9 @@ runState' ::
   State' s a
   -> s
   -> (a, s)
-runState' =
-  error "todo: Course.StateT#runState'"
+runState' s =
+  (\(ExactlyOne r) -> r) . (runStateT s)
+  -- error "todo: Course.StateT#runState'"
 
 -- | Run the `StateT` seeded with `s` and retrieve the resulting state.
 --
@@ -180,8 +196,9 @@ putT ::
   Applicative f =>
   s
   -> StateT s f ()
-putT =
-  error "todo: Course.StateT#putT"
+putT s =
+  StateT (\_ -> pure ((), s))
+  -- error "todo: Course.StateT#putT"
 
 -- | Remove all duplicate elements in a `List`.
 --
@@ -229,8 +246,9 @@ instance Functor f => Functor (OptionalT f) where
     (a -> b)
     -> OptionalT f a
     -> OptionalT f b
-  (<$>) =
-    error "todo: Course.StateT (<$>)#instance (OptionalT f)"
+  f <$> OptionalT oa =
+    OptionalT ((f <$>) <$> oa)
+    -- error "todo: Course.StateT (<$>)#instance (OptionalT f)"
 
 -- | Implement the `Applicative` instance for `OptionalT f` given a Monad f.
 --
@@ -261,14 +279,26 @@ instance Monad f => Applicative (OptionalT f) where
     a
     -> OptionalT f a
   pure =
-    error "todo: Course.StateT pure#instance (OptionalT f)"
+    OptionalT . pure . Full
+    -- error "todo: Course.StateT pure#instance (OptionalT f)"
 
   (<*>) ::
     OptionalT f (a -> b)
     -> OptionalT f a
     -> OptionalT f b
-  (<*>) =
-    error "todo: Course.StateT (<*>)#instance (OptionalT f)"
+  (OptionalT h) <*> (OptionalT a) =
+    OptionalT $ h >>= (\h' ->
+                          case h' of
+                            Empty -> pure Empty
+                            (Full g) -> ((g <$>) <$> a)
+                            )
+
+    -- OptionalT $ a >>= onFull ((h >>=) <$>)
+    -- (t -> f (Optional a))
+    -- -> Optional t
+    -- -> f (Optional a)
+
+    -- error "todo: Course.StateT (<*>)#instance (OptionalT f)"
 
 -- | Implement the `Monad` instance for `OptionalT f` given a Monad f.
 --

@@ -369,7 +369,7 @@ sequence2 ::
   -> f (List a)
 sequence2 Nil = pure Nil
 sequence2 (h :. t) =
-  lift2 (:.) h (sequence t)
+  lift2 (:.) h (sequence2 t)
   -- error "todo: Course.Applicative#sequence"
 
 -- | Replicate an effect a given number of times.
