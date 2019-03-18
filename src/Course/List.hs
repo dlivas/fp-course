@@ -21,7 +21,6 @@ import qualified System.Environment as E
 import qualified Prelude as P
 import qualified Numeric as N
 
-
 -- $setup
 -- >>> import Test.QuickCheck
 -- >>> import Course.Core(even, id, const)
@@ -277,10 +276,38 @@ seqOptional ::
   (Eq a) =>
   List (Optional a)
   -> Optional (List a)
-seqOptional l =
-  if isEmpty $ filter (==Empty) l
-    then Full $ map (\(Full a) -> a) l
-    else Empty
+seqOptional Nil = Full Nil
+seqOptional (Empty :. _) = Empty
+seqOptional ((Full a) :. t) =
+  let
+    seqOptTail = seqOptional t
+  in
+    if seqOptTail /= Empty
+      then
+        let
+          (Full tail) = seqOptTail
+        in
+          Full (a :. tail)
+      else
+        Empty
+
+seqOptional2 ::
+  (Eq a) =>
+  List (Optional a)
+  -> Optional (List a)
+seqOptional2 l
+  | isEmpty (filter (==Empty) l) = Full (map (\(Full a) -> a) l)
+  | otherwise = Empty
+
+seqOptional3 ::
+  (Eq a) =>
+  List (Optional a)
+  -> Optional (List a)
+seqOptional3 l =
+  let
+    l' = (map (\(Full a) -> a)) . (filter (/=Empty)) $ l
+  in
+    if length l /= length l' then Empty else Full l'
   -- error "todo: Course.List#seqOptional"
 
 -- | Find the first element in the list matching the predicate.
@@ -344,9 +371,17 @@ reverse ::
   List a
   -> List a
 reverse =
-  foldRight
-    (:.)
+  foldLeft
+    (flip (:.))
     Nil
+-- previous solution:
+-- reverse ::
+--   List a
+--   -> List a
+-- reverse =
+--   foldRight
+--     (:.)
+--     Nil
   -- error "todo: Course.List#reverse"
 
 -- | Produce an infinite `List` that seeds with the given value at its head,

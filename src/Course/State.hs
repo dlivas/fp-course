@@ -39,8 +39,8 @@ exec ::
   State s a
   -> s
   -> s
-exec s =
-  snd <$> runState s
+exec (State f) =
+  snd . f
   -- error "todo: Course.State#exec"
 
 -- | Run the `State` seeded with `s` and retrieve the resulting value.
@@ -50,8 +50,8 @@ eval ::
   State s a
   -> s
   -> a
-eval s =
-  fst <$> runState s
+eval (State f) =
+  fst . f
   -- error "todo: Course.State#eval"
 
 -- | A `State` where the state also distributes into the produced value.
@@ -95,8 +95,8 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  f <$> t =
-    State $ (\(a, s) -> (f a, s)) <$> runState t
+  f <$> State t =
+    State $ (\(a, s) -> (f a, s)) . t
     -- error "todo: Course.State#(<$>)"
 
 -- | Implement the `Applicative` instance for `State s`.
@@ -115,18 +115,19 @@ instance Applicative (State s) where
     a
     -> State s a
   pure a =
-    State (\s -> (a, s))
+    State (a,)
+    -- State (\s -> (a, s))
     -- error "todo: Course.State pure#instance (State s)"
   (<*>) ::
     State s (a -> b)
     -> State s a
     -> State s b
-  t <*> u =
+  State t <*> State u =
     State
       (\s ->
         let
-          (f, s1) = runState t s
-          (a, s2) = runState u s1
+          (f, s1) = t s
+          (a, s2) = u s1
         in
           (f a, s2)
       )
@@ -154,8 +155,8 @@ instance Monad (State s) where
     (a -> State s b)
     -> State s a
     -> State s b
-  f =<< t =
-    State $ (\(a, k) -> runState (f a) k) <$> runState t
+  f =<< State t =
+    State $ (\(a, k) -> runState (f a) k) . t
     -- previous solution:
     -- State $ flip runState <*> (f <$> eval t)
     -- previous solution:
@@ -193,8 +194,13 @@ findM p (a :. t) =
     \b -> if b
             then return (Full a)
             else findM p t
--- previous solution
--- return . headOr Empty =<< return . map Full =<< filtering p l
+findM2 ::
+  Monad f =>
+  (a -> f Bool)
+  -> List a
+  -> f (Optional a)
+findM2 p l =
+  pure . headOr Empty =<< pure . map Full =<< filtering p l
 -- error "todo: Course.State#findM"
 
 -- | Find the first element in a `List` that repeats.
@@ -204,6 +210,16 @@ findM p (a :. t) =
 --
 -- prop> \xs -> case firstRepeat xs of Empty -> let xs' = hlist xs in nub xs' == xs'; Full x -> length (filter (== x) xs) > 1
 -- prop> \xs -> case firstRepeat xs of Empty -> True; Full x -> let (l, (rx :. rs)) = span (/= x) xs in let (l2, r2) = span (/= x) rs in let l3 = hlist (l ++ (rx :. Nil) ++ l2) in nub l3 == l3
+firstRepeat2 ::
+  Ord a =>
+  List a
+  -> Optional a
+firstRepeat2 l =
+  (\(a, _, _, _) -> a)
+    =<< find
+          (\(_, b, _, _) -> not b)
+          (repeatedAndUniques l)
+
 firstRepeat ::
   Ord a =>
   List a
@@ -357,3 +373,47 @@ isHappyDebug =
   where
     sumSqrInts = toInteger <$> sum <$> map (join (*) <$> digitToInt) <$> show'
 -- error "todo: Course.State#isHappy"
+
+--
+-- The following types and functions help me to better understand State
+-- by implementig the example of "Bank kata in Haskell - dealing with state"
+-- -- see https://codurance.com/2019/02/11/bank-kata-in-haskell-state/
+--
+data Transaction =
+  Deposit Int
+  | Withdrawal Int
+
+instance Show Transaction where
+  show (Deposit a) = "Deposit " P.++ (show a)
+  show (Withdrawal a) = "Withdrawal " P.++ (show a)
+
+deposit :: Int -> State (List Transaction) ()
+deposit amount = State (\transactions -> ((), transactions ++ (Deposit amount :. Nil)))
+
+withdraw :: Int -> State (List Transaction) ()
+withdraw amount = State (\transactions -> ((), transactions ++ (Withdrawal amount :. Nil)))
+
+getStatement :: State (List Transaction) P.String
+getStatement = State (\transactions -> (generateStatement transactions, transactions))
+
+generateStatement :: (List Transaction) -> P.String
+generateStatement =
+  foldRight
+    (\t prevList -> (show t) P.++ "\n" P.++ prevList)
+    ""
+
+useMyBank :: State (List Transaction) P.String
+useMyBank = do
+  deposit 200
+  withdraw 100
+  getStatement
+  deposit 150
+  getStatement
+
+useMyBank' :: State (List Transaction) P.String
+useMyBank' =
+      deposit 200
+      >>= \_ -> withdraw 100
+      >>= \_ -> getStatement
+      >>= \_ -> withdraw 50
+      >>= \_ -> getStatement

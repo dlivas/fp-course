@@ -281,17 +281,42 @@ instance Monad f => Applicative (OptionalT f) where
   pure =
     OptionalT . pure . Full
     -- error "todo: Course.StateT pure#instance (OptionalT f)"
-
   (<*>) ::
     OptionalT f (a -> b)
     -> OptionalT f a
     -> OptionalT f b
   (OptionalT h) <*> (OptionalT a) =
-    OptionalT $ h >>= (\h' ->
-                          case h' of
-                            Empty -> pure Empty
-                            (Full g) -> ((g <$>) <$> a)
-                            )
+    let
+      h' Empty = pure Empty
+      h' (Full g) = (g <$>) <$> a
+    in
+      OptionalT $ h >>= h'
+
+    -- OptionalT $
+    --   (\h' -> (
+    --     return . (\a' -> (h' <*> a')) =<< a
+    --   )) =<< h
+
+    -- OptionalT $ onFull ((h <$>) <$>) =<< a
+
+    -- onFull ::
+    --   Applicative f =>
+    --   (t -> f (Optional a))
+    --   -> Optional t
+    --   -> f (Optional a)
+    -- onFull g o =
+    --   case o of
+    --     Empty ->
+    --       pure Empty
+    --     Full a ->
+    --       g a
+
+    -- Previous SOlution:
+    -- OptionalT $ h >>= (\h' ->
+    --                       case h' of
+    --                         Empty -> pure Empty
+    --                         (Full g) -> ((g <$>) <$> a)
+    --                         )
 
     -- OptionalT $ a >>= onFull ((h >>=) <$>)
     -- (t -> f (Optional a))
