@@ -194,6 +194,7 @@ findM p (a :. t) =
     \b -> if b
             then return (Full a)
             else findM p t
+
 findM2 ::
   Monad f =>
   (a -> f Bool)
@@ -201,7 +202,62 @@ findM2 ::
   -> f (Optional a)
 findM2 p l =
   pure . headOr Empty =<< pure . map Full =<< filtering p l
+
 -- error "todo: Course.State#findM"
+
+-- | Utility function used for the implementation of firstRepet and distinct .
+--
+repeatedAndUniques ::
+  Ord a =>
+  List a
+  -> List (Bool, a)
+repeatedAndUniques Nil = Nil
+repeatedAndUniques l@(h :. t) =
+  map (\(ba, _, _) -> ba) $
+    take (length l) $
+      produce
+        (exec uniquesState)
+        ((False, h), t, S.insert h S.empty)
+  where
+    uniquesState = State uniquesStateFunc
+    uniquesStateFunc (_, (a :. l), uniques) =
+      ((), ((S.member a uniques, a), l, S.insert a uniques))
+
+-- | Remove all not duplicate elements in a `List`.
+--
+repeated ::
+  Ord a =>
+  List a
+  -> List a
+repeated =
+  map snd
+  . filter fst
+  . repeatedAndUniques
+
+-- | Utility function used for the implementation of firstRepet and distinct .
+--
+-- repeated ::
+--   Ord a =>
+--   List a
+--   -> List (Optional a)
+-- repeated Nil = Nil
+-- repeated l@(h :. t) =
+--   map (\(a, _, _) -> a) $
+--     take (length l) $
+--       produce
+--         (exec uniquesState)
+--         (Empty, t, S.insert h S.empty)
+--   where
+--     uniquesState = State uniquesStateFunc
+--     uniquesStateFunc (_, (a :. l), uniques) =
+--       (
+--         (),
+--         (
+--           if S.member a uniques then Full a else Empty,
+--           l,
+--           S.insert a uniques
+--         )
+--       )
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
@@ -210,98 +266,13 @@ findM2 p l =
 --
 -- prop> \xs -> case firstRepeat xs of Empty -> let xs' = hlist xs in nub xs' == xs'; Full x -> length (filter (== x) xs) > 1
 -- prop> \xs -> case firstRepeat xs of Empty -> True; Full x -> let (l, (rx :. rs)) = span (/= x) xs in let (l2, r2) = span (/= x) rs in let l3 = hlist (l ++ (rx :. Nil) ++ l2) in nub l3 == l3
-firstRepeat2 ::
-  Ord a =>
-  List a
-  -> Optional a
-firstRepeat2 l =
-  (\(a, _, _, _) -> a)
-    =<< find
-          (\(_, b, _, _) -> not b)
-          (repeatedAndUniques l)
-
 firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat l =
-  (\(a, _, _, _) -> a)
-    =<< find
-          (\(_, b, _, _) -> not b)
-          (repeatedAndUniques l)
-
--- tuple elems: (current a, a isNotRepeated, unique elems, to be processed elems)
-repeatedAndUniques ::
-  Ord a =>
-  List a
-  -> List (Optional a, Bool, S.Set a, List a)
-repeatedAndUniques =
-  removeEmpty . produce nextState . (Empty, True, S.empty,)
-  where
-    nextState (_, _, uniques, Nil) =
-      (Empty, False, uniques, Nil)
-
-    nextState (_, _, uniques, (a :. t)) =
-      ( Full a
-      , not (S.member a uniques)
-      , S.insert a uniques
-      , t
-      )
-
-    removeEmpty = filter (\(a, _, _, _) -> a /= Empty)
-
--- Previous solution:
--- firstRepeat =
---   processList Nil
---   where
---     examineUnique a = State (\uniqs -> (elem a uniqs, (a :. uniqs)))
---     processList _ Nil = Empty
---     processList s (a :. t) =
---       let
---         (found, ns) = runState (examineUnique a) s
---       in
---         if found
---           then Full a
---           else processList ns t
--- Previous Solution:
--- firstRepeat =
---   processList S.empty
---   where
---     examineUnique a = State (\uniqs -> (S.member a uniqs, S.insert a uniqs))
---     processList _ Nil = Empty
---     processList s (a :. t) =
---       let
---         (found, ns) = runState (examineUnique a) s
---       in
---         if found
---           then Full a
---           else processList ns t
--- previous solution:
--- firstRepeat l =
---   processList Nil l
---   where
---     processList _ Nil = Empty
---     processList s (a :. r) =
---       let
---         found = elem a s
---         ns = if found then s else (a :. s)
---         in
---           if found
---             then Full a
---             else processList ns r
--- Previous Solution:
--- firstRepeat Nil = Empty
--- firstRepeat (x :. t) =
---   if elem x t
---     then Full x
---     else firstRepeat t
--- previous solution:
--- firstRepeat Nil = Empty
--- firstRepeat (_ :. Nil) = Empty
--- firstRepeat (a :. b :. t) =
---   if a == b
---     then Full a
---     else firstRepeat (b :. t)
+firstRepeat =
+  find (const True)
+  . repeated
 
   -- error "todo: Course.State#firstRepeat"
 
@@ -316,14 +287,10 @@ distinct ::
   List a
   -> List a
 distinct =
-  uniqueElems . uniqueElemTuples . repeatedAndUniques
-  where
-    uniqueElems = map (\(Full a, _, _, _) -> a)
-    uniqueElemTuples = filter (\(_, b, _, _) -> b)
--- previous soulution:
--- distinct Nil = Nil
--- distinct (x :. t) =
---   x :. filter (x /=) t
+  map snd
+  . filter (not . fst)
+  . repeatedAndUniques
+
   -- error "todo: Course.State#distinct"
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
@@ -351,9 +318,9 @@ isHappy ::
   Integer
   -> Bool
 isHappy =
-  contains 1 <$> firstRepeat <$> produce sumSqrInts
+  contains 1 . firstRepeat . take 20 . produce sumSqrInts
   where
-    sumSqrInts = toInteger <$> sum <$> map (join (*) <$> digitToInt) <$> show'
+    sumSqrInts = toInteger . sum . map (join (*) . digitToInt) . show'
 -- Previous solution:
 -- isHappy =
 --   contains 1 <$> firstRepeat <$> produce sumSqrInts
