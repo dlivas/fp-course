@@ -234,31 +234,6 @@ repeated =
   . filter fst
   . repeatedAndUniques
 
--- | Utility function used for the implementation of firstRepet and distinct .
---
--- repeated ::
---   Ord a =>
---   List a
---   -> List (Optional a)
--- repeated Nil = Nil
--- repeated l@(h :. t) =
---   map (\(a, _, _) -> a) $
---     take (length l) $
---       produce
---         (exec uniquesState)
---         (Empty, t, S.insert h S.empty)
---   where
---     uniquesState = State uniquesStateFunc
---     uniquesStateFunc (_, (a :. l), uniques) =
---       (
---         (),
---         (
---           if S.member a uniques then Full a else Empty,
---           l,
---           S.insert a uniques
---         )
---       )
-
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
 --
