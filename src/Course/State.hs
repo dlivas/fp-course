@@ -195,44 +195,8 @@ findM p (a :. t) =
             then return (Full a)
             else findM p t
 
-findM2 ::
-  Monad f =>
-  (a -> f Bool)
-  -> List a
-  -> f (Optional a)
-findM2 p l =
-  pure . headOr Empty =<< pure . map Full =<< filtering p l
-
 -- error "todo: Course.State#findM"
 
--- | Utility function used for the implementation of firstRepet and distinct .
---
-repeatedAndUniques ::
-  Ord a =>
-  List a
-  -> List (Bool, a)
-repeatedAndUniques Nil = Nil
-repeatedAndUniques l@(h :. t) =
-  map (\(ba, _, _) -> ba) $
-    take (length l) $
-      produce
-        (exec uniquesState)
-        ((False, h), t, S.insert h S.empty)
-  where
-    uniquesState = State uniquesStateFunc
-    uniquesStateFunc (_, (a :. l), uniques) =
-      ((), ((S.member a uniques, a), l, S.insert a uniques))
-
--- | Remove all not duplicate elements in a `List`.
---
-repeated ::
-  Ord a =>
-  List a
-  -> List a
-repeated =
-  map snd
-  . filter fst
-  . repeatedAndUniques
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
@@ -246,8 +210,8 @@ firstRepeat ::
   List a
   -> Optional a
 firstRepeat =
-  find (const True)
-  . repeated
+  (flip eval S.empty)
+  . findM (\a -> State (\s -> (S.member a s, S.insert a s)))
 
   -- error "todo: Course.State#firstRepeat"
 
@@ -262,9 +226,8 @@ distinct ::
   List a
   -> List a
 distinct =
-  map snd
-  . filter (not . fst)
-  . repeatedAndUniques
+  (flip eval S.empty)
+  . filtering (\a -> State (\s -> (S.notMember a s, S.insert a s)))
 
   -- error "todo: Course.State#distinct"
 
@@ -293,19 +256,9 @@ isHappy ::
   Integer
   -> Bool
 isHappy =
-  contains 1 . firstRepeat . take 20 . produce sumSqrInts
+  contains 1 . firstRepeat . produce sumSqrInts
   where
     sumSqrInts = toInteger . sum . map (join (*) . digitToInt) . show'
--- Previous solution:
--- isHappy =
---   contains 1 <$> firstRepeat <$> produce sumSqrInts
---   where
---     digiToSquareInt = (*) <*> id <$> toInteger <$> digitToInt
---     sumSqrInts y =
---       foldRight
---         (+)
---         (0 :: Integer)
---         (digiToSquareInt <$> show' y)
 
 isHappyDebug ::
   Integer
