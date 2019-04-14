@@ -75,8 +75,11 @@ instance Monad ((->) t) where
     (a -> ((->) t b))
     -> ((->) t a)
     -> ((->) t b)
-  (=<<) f h =
-    flip f <*> h
+  (=<<) =
+    (<*>) . flip
+    -- previous solution
+    -- (=<<) f h =
+    --    flip f <*> h
     -- previous solution
     -- \x -> f (h x) x
     -- error "todo: Course.Monad (=<<)#instance ((->) t)"

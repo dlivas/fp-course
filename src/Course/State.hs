@@ -116,8 +116,6 @@ instance Applicative (State s) where
     -> State s a
   pure a =
     State (a,)
-    -- State (\s -> (a, s))
-    -- error "todo: Course.State pure#instance (State s)"
   (<*>) ::
     State s (a -> b)
     -> State s a
@@ -131,17 +129,6 @@ instance Applicative (State s) where
         in
           (f a, s2)
       )
-    -- previous solution:
-    -- (\s ->  ( (eval t <*> eval u) s
-    --         , (exec u <$> exec t) s
-    --         ))
-    -- previous solution:
-    -- State (\s -> (firstR s, secondR s))
-    -- where
-    --   firstR s = (eval t s) (eval u s)
-    --   secondR s = exec u (exec t s)
-    --
-    -- error "todo: Course.State (<*>)#instance (State s)"
 
 -- | Implement the `Bind` instance for `State s`.
 --
@@ -196,7 +183,6 @@ findM p (a :. t) =
             else findM p t
 
 -- error "todo: Course.State#findM"
-
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
