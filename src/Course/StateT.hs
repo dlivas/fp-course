@@ -66,7 +66,7 @@ instance Monad f => Applicative (StateT s f) where
     a
     -> StateT s f a
   pure a =
-    StateT (pure . (a,))
+    StateT $ pure . (a,)
     -- error "todo: Course.StateT pure#instance (StateT s f)"
   (<*>) ::
     StateT s f (a -> b)
@@ -79,13 +79,6 @@ instance Monad f => Applicative (StateT s f) where
           >>= (\(f, s1) ->
                 u s1
                   >>= pure . (\(a, s2) -> (f a, s2))))
-    -- other solution:
-    -- StateT
-    --   (\s ->
-    --       t s
-    --         >>= (\(f, s1) -> ((f,) <$> u s1))
-    --         >>= pure . (\(f, (a, s2)) -> (f a, s2))
-    --         )
     -- error "todo: Course.StateT (<*>)#instance (StateT s f)"
 
 -- | Implement the `Monad` instance for @StateT s f@ given a @Monad f@.
@@ -312,6 +305,7 @@ instance Monad f => Applicative (OptionalT f) where
       h' (Full g) = (g <$>) <$> a
     in
       OptionalT $ h >>= h'
+    -- OptionalT $ a >>= onFull (\a'' -> (($ a'') <$>) <$> h)
     -- error "todo: Course.StateT (<*>)#instance (OptionalT f)"
 
 -- | Implement the `Monad` instance for `OptionalT f` given a Monad f.
@@ -342,8 +336,9 @@ instance Functor (Logger l) where
     (a -> b)
     -> Logger l a
     -> Logger l b
-  (<$>) =
-    error "todo: Course.StateT (<$>)#instance (Logger l)"
+  f <$> Logger l a =
+    Logger l (f a)
+    -- error "todo: Course.StateT (<$>)#instance (Logger l)"
 
 -- | Implement the `Applicative` instance for `Logger`.
 --
@@ -357,14 +352,16 @@ instance Applicative (Logger l) where
     a
     -> Logger l a
   pure =
-    error "todo: Course.StateT pure#instance (Logger l)"
+    Logger Nil
+    -- error "todo: Course.StateT pure#instance (Logger l)"
 
   (<*>) ::
     Logger l (a -> b)
     -> Logger l a
     -> Logger l b
-  (<*>) =
-    error "todo: Course.StateT (<*>)#instance (Logger l)"
+  Logger l f <*> Logger l' a =
+    Logger (l ++ l') (f a)
+    -- error "todo: Course.StateT (<*>)#instance (Logger l)"
 
 -- | Implement the `Monad` instance for `Logger`.
 -- The `bind` implementation must append log values to maintain associativity.
@@ -376,8 +373,12 @@ instance Monad (Logger l) where
     (a -> Logger l b)
     -> Logger l a
     -> Logger l b
-  (=<<) =
-    error "todo: Course.StateT (=<<)#instance (Logger l)"
+  f =<< Logger l a =
+    let
+      Logger l' b = f a
+    in
+      Logger (l ++ l') b
+    -- error "todo: Course.StateT (=<<)#instance (Logger l)"
 
 -- | A utility function for producing a `Logger` with one log value.
 --
@@ -387,8 +388,9 @@ log1 ::
   l
   -> a
   -> Logger l a
-log1 =
-  error "todo: Course.StateT#log1"
+log1 l a =
+  Logger (l :. Nil) a
+  -- error "todo: Course.StateT#log1"
 
 -- | Remove all duplicate integers from a list. Produce a log as you go.
 -- If there is an element above 100, then abort the entire computation and produce no result.
