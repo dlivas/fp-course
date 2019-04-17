@@ -426,7 +426,7 @@ distinctG =
                   (optionalMembership a s))))
     where
       messageList a =
-        if (a > 100)
+        if a > 100
           then (("aborting > 100: " ++ (show' a)) :. Nil)
           else
             if (even a)
