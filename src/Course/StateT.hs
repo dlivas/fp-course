@@ -300,12 +300,13 @@ instance Monad f => Applicative (OptionalT f) where
     -> OptionalT f a
     -> OptionalT f b
   (OptionalT h) <*> (OptionalT a) =
-    let
-      h' Empty = pure Empty
-      h' (Full g) = (g <$>) <$> a
-    in
-      OptionalT $ h >>= h'
-    -- OptionalT $ a >>= onFull (\a'' -> (($ a'') <$>) <$> h)
+    OptionalT $ h >>= onFull (\h' -> (h' <$>) <$> a)
+    -- other solution:
+    -- let
+    --   h' Empty = pure Empty
+    --   h' (Full g) = (g <$>) <$> a
+    -- in
+    --   OptionalT $ h >>= h'
     -- error "todo: Course.StateT (<*>)#instance (OptionalT f)"
 
 -- | Implement the `Monad` instance for `OptionalT f` given a Monad f.
@@ -412,22 +413,28 @@ distinctG ::
   -> Logger Chars (Optional (List a))
 distinctG =
   runOptionalT
-    . (flip evalT S.empty)
+    . flip evalT S.empty
     . filtering
         (\a ->
-          (StateT
+          StateT
             (\s ->
               OptionalT
                 (Logger
-                  (if (a > 100)
-                    then (("aborting > 100: " ++ (show' a)) :. Nil)
-                    else
-                      if (even a)
-                        then (("even number: " ++ (show' a)) :. Nil)
-                        else Nil)
-                  (if a > 100
-                    then Empty
-                    else Full (S.notMember a s, S.insert a s))))))
+                  (messageList a)
+                  (optionalMembership a s))))
+    where
+      messageList a =
+        if (a > 100)
+          then (("aborting > 100: " ++ (show' a)) :. Nil)
+          else
+            if (even a)
+              then (("even number: " ++ (show' a)) :. Nil)
+              else Nil
+      optionalMembership a s =
+        if a > 100
+          then Empty
+          else Full (S.notMember a s, S.insert a s)
+
   -- error "todo: Course.StateT#distinctG"
 
 onFull ::
