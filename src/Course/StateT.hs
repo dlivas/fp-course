@@ -238,10 +238,12 @@ distinctF ::
 distinctF =
   (flip evalT S.empty)
     . filtering
-      (\a -> (StateT (\s ->
-                        if a > 100
-                          then Empty
-                          else Full (S.notMember a s, S.insert a s))))
+      (\a ->
+        (StateT
+          (\s ->
+            if a > 100
+              then Empty
+              else Full (S.notMember a s, S.insert a s))))
   -- error "todo: Course.StateT#distinctF"
 
 -- | An `OptionalT` is a functor of an `Optional` value.
