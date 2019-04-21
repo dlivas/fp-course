@@ -41,7 +41,7 @@ instance Functor f => Functor (StateT s f) where
     -> StateT s f a
     -> StateT s f b
   f <$> StateT t =
-    StateT (((\(a, s) -> (f a, s)) <$> ) . t)
+    StateT $ ((\(a, s) -> (f a, s)) <$> ) . t
     -- error "todo: Course.StateT (<$>)#instance (StateT s f)"
 
 -- | Implement the `Applicative` instance for @StateT s f@ given a @Monad f@.
