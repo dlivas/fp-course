@@ -530,10 +530,10 @@ moveLeftN' n lza@(ListZipper l _ _)
     Left lengthl
   | otherwise =
     case moveLeftN n lza of
-      IsNotZ ->
-        Left lengthl
       (IsZ lza') ->
         Right lza'
+      IsNotZ -> -- this case is never satisfied
+        Left lengthl
     where
       lengthl = length l
   -- error "todo: Course.ListZipper#moveLeftN'"
@@ -566,10 +566,10 @@ moveRightN' n lza@(ListZipper _ _ r)
     Left lengthr
   | otherwise =
     case moveRightN n lza of
-      IsNotZ ->
-        Left lengthr
       (IsZ lza') ->
         Right lza'
+      IsNotZ -> -- this case is never satisfied
+        Left lengthr
   where
     lengthr = length r
   -- error "todo: Course.ListZipper#moveRightN'"
@@ -596,10 +596,7 @@ nth n (ListZipper l a r)
       Nil ->
         IsNotZ
       (a' :. r') ->
-        let
-          l' = take n list
-        in
-          IsZ (ListZipper (reverse l') a' r')
+        IsZ (ListZipper (reverse (take n list)) a' r')
   where
     list = (reverse l) ++ (a :. r)
     lengthl = length list
@@ -631,10 +628,10 @@ end ::
   -> ListZipper a
 end (ListZipper l a r) =
   case reverse r ++ (a :. l) of
-    Nil ->
-      ListZipper Nil a Nil
     (a' :. l') ->
       ListZipper l' a' Nil
+    Nil -> -- this case is never satisfied
+      ListZipper Nil a Nil
   -- error "todo: Course.ListZipper#end"
 
 -- | Move the focus to the start of the zipper.
@@ -650,10 +647,10 @@ start ::
   -> ListZipper a
 start (ListZipper l a r) =
   case reverse l ++  (a :. r) of
-    Nil ->
-      ListZipper Nil a Nil
     (a' :. r') ->
       ListZipper Nil a' r'
+    Nil -> -- this case is never satisfied
+      ListZipper Nil a Nil
   -- error "todo: Course.ListZipper#start"
 
 -- | Delete the current focus and pull the left values to take the empty position.
