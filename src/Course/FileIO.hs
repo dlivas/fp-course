@@ -138,7 +138,12 @@ run name =
 main ::
   IO ()
 main =
-  getArgs >>= return . (\(h :. _) -> h) >>= run
+  getArgs >>= checkParams
+  where
+    checkParams Nil =
+      putStrLn "please provide a filename"
+    checkParams (filename :. _) =
+      run filename
   -- error "todo: Course.FileIO#main"
 
 ----

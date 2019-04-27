@@ -279,35 +279,11 @@ seqOptional ::
 seqOptional Nil = Full Nil
 seqOptional (Empty :. _) = Empty
 seqOptional ((Full a) :. t) =
-  let
-    seqOptTail = seqOptional t
-  in
-    if seqOptTail /= Empty
-      then
-        let
-          (Full tail) = seqOptTail
-        in
-          Full (a :. tail)
-      else
-        Empty
-
-seqOptional2 ::
-  (Eq a) =>
-  List (Optional a)
-  -> Optional (List a)
-seqOptional2 l
-  | isEmpty (filter (==Empty) l) = Full (map (\(Full a) -> a) l)
-  | otherwise = Empty
-
-seqOptional3 ::
-  (Eq a) =>
-  List (Optional a)
-  -> Optional (List a)
-seqOptional3 l =
-  let
-    l' = (map (\(Full a) -> a)) . (filter (/=Empty)) $ l
-  in
-    if length l /= length l' then Empty else Full l'
+  case seqOptional t of
+    Empty ->
+      Empty
+    (Full t') ->
+      Full (a :. t')
   -- error "todo: Course.List#seqOptional"
 
 -- | Find the first element in the list matching the predicate.
