@@ -239,8 +239,8 @@ instance Applicative Parser where
     -> Parser b
   pf <*> pa =
     pf
-      >>= (\f ->
-            pa >>= (\a -> pure (f a)))
+      >>= \f ->
+            pa >>= \a -> pure (f a)
     -- error "todo: Course.Parser (<*>)#instance Parser"
 
 -- | Return a parser that produces a character but fails if
@@ -591,20 +591,7 @@ phoneParser =
           phoneBodyParser
             >>= \ds ->
               is '#'
-                >>= \_ -> valueParser (d :. ds)
--- other solution: (amate ur, complex)
--- phoneParser =
---   let
---     firstDigitPhoneBody =
---       lift2
---         (:.)
---         digit
---         phoneBodyParser
---   in
---     lift2
---       (++)
---       firstDigitPhoneBody
---       (thisMany 1 (is '#')) >>= (\cs -> valueParser (take (length cs -1) cs))
+                >> valueParser (d :. ds)
   -- error "todo: Course.Parser#phoneParser"
 
 -- | Write a parser for Person.
@@ -659,7 +646,45 @@ phoneParser =
 personParser ::
   Parser Person
 personParser =
-  error "todo: Course.Parser#personParser"
+  ageParser
+    >>= \pAge -> spaces1
+    >> firstNameParser
+    >>= \pFirstName -> spaces1
+    >> surnameParser
+    >>= \pSurname -> spaces1
+    >> smokerParser
+    >>= \pIsSmoker -> spaces1
+    >> phoneParser
+    >>= \pPhoneNumber ->
+          valueParser
+            (Person
+              pAge
+              pFirstName
+              pSurname
+              pIsSmoker
+              pPhoneNumber)
+
+-- solution of the above exersice using the "do" syntax
+personParser2 ::
+  Parser Person
+personParser2 = do
+  pAge <- ageParser
+  spaces1
+  pFirstName <- firstNameParser
+  spaces1
+  pSurname <- surnameParser
+  spaces1
+  pIsSmoker <- smokerParser
+  spaces1
+  pPhoneNumber <- phoneParser
+  valueParser
+    (Person
+      pAge
+      pFirstName
+      pSurname
+      pIsSmoker
+      pPhoneNumber)
+  -- error "todo: Course.Parser#personParser"
 
 -- Make sure all the tests pass!
 
