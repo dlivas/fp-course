@@ -362,14 +362,6 @@ sequence =
   foldRight
     (lift2 (:.))
     (pure Nil)
-
-sequence2 ::
-  Applicative f =>
-  List (f a)
-  -> f (List a)
-sequence2 Nil = pure Nil
-sequence2 (h :. t) =
-  lift2 (:.) h (sequence2 t)
   -- error "todo: Course.Applicative#sequence"
 
 -- | Replicate an effect a given number of times.
@@ -431,24 +423,6 @@ filtering p =
         (\b -> ifThenElse b (a :.) id)
         (p a))
     (pure Nil)
-
-filtering3 ::
-  Applicative f =>
-  (a -> f Bool)
-  -> List a
-  -> f (List a)
-filtering3 p l =
-  map fst . (filter snd) <$> sequence ((\a -> (a,) <$> p a) <$> l)
-
-filtering2 ::
-  Applicative f =>
-  (a -> f Bool)
-  -> List a
-  -> f (List a)
-filtering2 p l =
-  flatten <$> sequence (inList <$> l)
-  where
-    inList a = (\b -> if b then (a :. Nil) else Nil) <$> p a
 
 -----------------------
 -- SUPPORT LIBRARIES --
