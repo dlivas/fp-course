@@ -59,14 +59,19 @@ isErrorResult ::
   -> Bool
 isErrorResult (Result _ _) =
   False
-isErrorResult UnexpectedEof =
+isErrorResult _ =
   True
-isErrorResult (ExpectedEof _) =
-  True
-isErrorResult (UnexpectedChar _) =
-  True
-isErrorResult (UnexpectedString _) =
-  True
+-- original implementation:
+-- isErrorResult (Result _ _) =
+--   False
+-- isErrorResult UnexpectedEof =
+--   True
+-- isErrorResult (ExpectedEof _) =
+--   True
+-- isErrorResult (UnexpectedChar _) =
+--   True
+-- isErrorResult (UnexpectedString _) =
+--   True
 
 -- | Runs the given function on a successful parse result. Otherwise return the same failing parse result.
 onResult ::
@@ -646,6 +651,22 @@ phoneParser =
 personParser ::
   Parser Person
 personParser =
+  ageParser >>=~ \pAge ->
+  firstNameParser >>=~ \pFirstName ->
+  surnameParser >>=~ \pSurname ->
+  smokerParser >>=~ \pIsSmoker ->
+  phoneParser >>=~ \pPhoneNumber ->
+    pure
+      (Person
+        pAge
+        pFirstName
+        pSurname
+        pIsSmoker
+        pPhoneNumber)
+
+personParser1 ::
+  Parser Person
+personParser1 =
   ageParser
     >>= \pAge -> spaces1
     >> firstNameParser
