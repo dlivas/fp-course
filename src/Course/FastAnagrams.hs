@@ -14,8 +14,18 @@ fastAnagrams ::
   Chars
   -> FilePath
   -> IO (List Chars)
-fastAnagrams =
-  error "todo: Course.FastAnagrams#fastAnagrams"
+fastAnagrams str fileName =
+  perms <$> readFile fileName
+  where
+    uniques = listh . S.toList . S.fromList . hlist . words
+    perms input =
+      let
+        fileWords = NoCaseString <$> uniques input
+        anagramsList = NoCaseString <$> permutations str
+        results = intersectBy (==) fileWords anagramsList
+      in
+        (++ ('\n' :. Nil)) . ncString <$> results
+  -- error "todo: Course.FastAnagrams#fastAnagrams"
 
 newtype NoCaseString =
   NoCaseString {

@@ -38,9 +38,9 @@ anagrams str fileName =
       let
         fileWords = words input
         anagramsList = permutations str
-        results = intersectBy (==) fileWords anagramsList
+        results = intersectBy equalIgnoringCase fileWords anagramsList
       in
-        (++ "\n") <$> results
+        (++ ('\n' :. Nil)) <$> results
   -- error "todo: Course.Anagrams#anagrams"
 
 -- Compare two strings for equality, ignoring case
