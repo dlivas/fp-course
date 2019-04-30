@@ -114,11 +114,11 @@ jsonString =
     strChar = do
       c <- character
       c' <- ifSpecialCh c
-      ifUextectedQuote c'
+      ifUnextectedQuote c'
   in
     between (is '\"') (charTok '\"') (list strChar)
   where
-    ifUextectedQuote ch =
+    ifUnextectedQuote ch =
       ifThenElse
         (ch /= '\"')
         (pure ch)

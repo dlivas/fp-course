@@ -49,8 +49,8 @@ instance Monad List where
     (a -> List b)
     -> List a
     -> List b
-  (=<<) f l =
-    flatten $ lift1 f l
+  (=<<) =
+    flatMap
     -- error "todo: Course.Monad (=<<)#instance List"
 
 -- | Binds a function on an Optional.
@@ -76,12 +76,7 @@ instance Monad ((->) t) where
     -> ((->) t a)
     -> ((->) t b)
   (=<<) =
-    (<*>) . flip
-    -- previous solution
-    -- (=<<) f h =
-    --    flip f <*> h
-    -- previous solution
-    -- \x -> f (h x) x
+    (<*>) . flip -- \x -> f (h x) x
     -- error "todo: Course.Monad (=<<)#instance ((->) t)"
 
 -- | Witness that all things with (=<<) and (<$>) also have (<*>).
