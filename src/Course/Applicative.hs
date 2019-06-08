@@ -78,14 +78,6 @@ instance Applicative List where
     -> List b
   fs <*> as =
     flatMap (<$> as) fs
-  -- fs <*> as =
-  --   flatten listOfLists
-  --   where
-  --     listOfLists =
-  --       foldRight
-  --         (\f -> ((f <$> as) :.))
-  --         Nil
-  --         fs
     -- error "todo: Course.Apply (<*>)#instance List"
 
 -- | Insert into an Optional.
@@ -306,8 +298,6 @@ lift1 =
   -> f b
 (*>) =
   lift2 (const id)
--- a *> b =
---   lift2 (flip ($)) a (const <$> b)
   -- error "todo: Course.Applicative#(*>)"
 
 -- | Apply, discarding the value of the second argument.
@@ -335,7 +325,6 @@ lift1 =
   -> f b
 (<*) =
   lift2 const
-  -- const <$> b <*> a
   -- error "todo: Course.Applicative#(<*)"
 
 -- | Sequences a list of structures to a structure of list.

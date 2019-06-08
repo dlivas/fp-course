@@ -283,7 +283,7 @@ seqOptional ((Full a) :. t) =
   case seqOptional t of
     Empty ->
       Empty
-    (Full t') ->
+    Full t' ->
       Full (a :. t')
   -- error "todo: Course.List#seqOptional"
 

@@ -61,12 +61,12 @@ eval (State f) =
 get ::
   State s s
 get =
-  State ((,) <*> id)
+  State (\s -> (s, s))
 
 get2 ::
   State s s
 get2 =
-  State (\s -> (s, s))
+  State ((,) <*> id)
   -- error "todo: Course.State#get"
 
 -- | A `State` where the resulting state is seeded with the given value.
@@ -95,8 +95,8 @@ instance Functor (State s) where
     (a -> b)
     -> State s a
     -> State s b
-  f <$> State t =
-    State $ (\(a, s) -> (f a, s)) . t
+  f <$> State s =
+    State $ (\(a, s') -> (f a, s')) . s
     -- error "todo: Course.State#(<$>)"
 
 -- | Implement the `Applicative` instance for `State s`.
@@ -120,15 +120,18 @@ instance Applicative (State s) where
     State s (a -> b)
     -> State s a
     -> State s b
-  State t <*> State u =
-    State
-      (\s ->
-        let
-          (f, s1) = t s
-          (a, s2) = u s1
-        in
-          (f a, s2)
-      )
+  State sf <*> sa =
+    State $ (\(f, s) -> runState (f <$> sa) s) . sf
+  -- alternative solution:
+  -- State t <*> State u =
+  --   State
+  --     (\s ->
+  --       let
+  --         (f, s1) = t s
+  --         (a, s2) = u s1
+  --       in
+  --         (f a, s2)
+  --     )
 
 -- | Implement the `Bind` instance for `State s`.
 --
@@ -142,18 +145,8 @@ instance Monad (State s) where
     (a -> State s b)
     -> State s a
     -> State s b
-  f =<< State t =
-    State $ (\(a, k) -> runState (f a) k) . t
-    -- previous solution:
-    -- State $ flip runState <*> (f <$> eval t)
-    -- previous solution:
-    -- State $ flip runState <*> (f <$> eval t)
-    -- previous solution:
-    -- State (\s ->  runState ((f . eval t) s) s)
-    -- previous solution:
-    -- State (\s ->  ( eval (f $ eval t s) s
-    --               , exec (f $ eval t s) s
-    --               ))
+  f =<< State s =
+    State $ (\(a, s') -> runState (f a) s') . s
     -- error "todo: Course.State (=<<)#instance (State s)"
 
 -- | Find the first element in a `List` that satisfies a given predicate.
@@ -175,13 +168,13 @@ findM ::
   (a -> f Bool)
   -> List a
   -> f (Optional a)
-findM _ Nil = return Empty
+findM _ Nil =
+  pure Empty
 findM p (a :. t) =
   p a >>=
     \b -> if b
-            then return (Full a)
+            then pure (Full a)
             else findM p t
-
 -- error "todo: Course.State#findM"
 
 -- | Find the first element in a `List` that repeats.
@@ -195,10 +188,12 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat =
-  (flip eval S.empty)
-  . findM (\a -> State (\s -> (S.member a s, S.insert a s)))
-
+firstRepeat l =
+  eval
+    (findM (\a -> State (\s -> (S.member a s, S.insert a s))) l)
+    S.empty
+  -- (flip eval S.empty)
+  -- . findM (\a -> State (\s -> (S.member a s, S.insert a s)))
   -- error "todo: Course.State#firstRepeat"
 
 -- | Remove all duplicate elements in a `List`.
