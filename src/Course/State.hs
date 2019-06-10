@@ -83,7 +83,7 @@ put1 ::
   s
   -> State s ()
 put1 s =
-  State $ lift1 ((),) (const s)
+  State $ ((),) . (const s)
   -- error "todo: Course.State#put"
 
 -- | Implement the `Functor` instance for `State s`.
