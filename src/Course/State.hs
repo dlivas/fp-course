@@ -207,7 +207,7 @@ distinct ::
   List a
   -> List a
 distinct =
-  (flip eval S.empty)
+  flip eval S.empty
   . filtering (\a -> State (\s -> (S.notMember a s, S.insert a s)))
 
   -- error "todo: Course.State#distinct"
