@@ -172,9 +172,10 @@ findM _ Nil =
   pure Empty
 findM p (a :. t) =
   p a >>=
-    \b -> if b
-            then pure (Full a)
-            else findM p t
+    \b ->
+      if b
+        then pure (Full a)
+        else findM p t
 -- error "todo: Course.State#findM"
 
 -- | Find the first element in a `List` that repeats.
@@ -190,7 +191,7 @@ firstRepeat ::
   -> Optional a
 firstRepeat l =
   eval
-    (findM (\a -> State (\s -> (S.member a s, S.insert a s))) l)
+    (findM (\a -> State (\s -> (S.member a s, S.insert a s))) l) 
     S.empty
   -- (flip eval S.empty)
   -- . findM (\a -> State (\s -> (S.member a s, S.insert a s)))

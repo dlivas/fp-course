@@ -82,8 +82,8 @@ Full a ?? _ = a
   Optional a
   -> Optional a
   -> Optional a
-Full a <+> _ = Full a
 Empty <+> a = a
+a <+> _ = a
   -- error "todo: Course.Optional#(<+>)"
 
 -- | Replaces the Full and Empty constructors in an optional.
@@ -102,7 +102,7 @@ optional _ b Empty = b
 optional f _ (Full a) = f a
   -- error "todo: Course.Optional#optional"
 
-applyOptional :: Optional (a -> b) -> Optional a -> Optional b
+applyOptional ::Optional (a -> b) -> Optional a -> Optional b
 applyOptional f a = bindOptional (\f' -> mapOptional f' a) f
 
 twiceOptional :: (a -> b -> c) -> Optional a -> Optional b -> Optional c

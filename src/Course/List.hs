@@ -148,15 +148,8 @@ map ::
   -> List b
 map f =
   foldRight
-    -- (\a l -> f a :. l)
     ((:.) . f)
     Nil
-  -- -OR-
-  -- map = M.liftM
-  -- -OR-
-  -- map _ Nil = Nil
-  -- map f (x :. t) = (f x :. map f t)
-  --
   -- error "todo: Course.List#map"
 
 -- | Return elements satisfying the given predicate.
@@ -176,6 +169,7 @@ filter ::
 filter f =
   foldRight
     (\a l -> if f a then (a :. l) else l)
+    -- (\a -> ifThenElse (f a) (a :.) id)
     Nil
   -- error "todo: Course.List#filter"
 
