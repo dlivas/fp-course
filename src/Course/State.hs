@@ -66,7 +66,7 @@ get =
 get2 ::
   State s s
 get2 =
-  State ((,) <*> id)
+  State $ (,) <*> id
   -- error "todo: Course.State#get"
 
 -- | A `State` where the resulting state is seeded with the given value.
@@ -77,13 +77,7 @@ put ::
   s
   -> State s ()
 put s =
-  State (\_ -> ((),s))
-
-put1 ::
-  s
-  -> State s ()
-put1 s =
-  State $ ((),) . (const s)
+  State $ const ((), s)
   -- error "todo: Course.State#put"
 
 -- | Implement the `Functor` instance for `State s`.

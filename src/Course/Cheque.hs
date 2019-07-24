@@ -213,12 +213,85 @@ showDigit Eight =
 showDigit Nine =
   "nine"
 
+showWithNonZeroDigit ::
+  Digit
+  -> Chars
+  -> Chars
+showWithNonZeroDigit d s =
+  if d == Zero
+    then s
+    else s ++ "-" ++ showDigit d
+
+stripStartZeros ::
+  List Digit
+  -> List Digit
+stripStartZeros =
+  dropWhile (== Zero)
+
+stripEndZeros ::
+  List Digit
+  -> List Digit
+stripEndZeros =
+  reverse . stripStartZeros . reverse 
+
 -- A data type representing one, two or three digits, which may be useful for grouping.
 data Digit3 =
   D1 Digit
   | D2 Digit Digit
   | D3 Digit Digit Digit
   deriving Eq
+
+showDigit3 ::
+  Digit3
+  -> Chars
+showDigit3 (D1 d) =
+  showDigit d
+showDigit3 (D2 t u) =
+  case t of
+    Zero -> showDigit u
+    One ->
+      case u of
+        Zero -> "ten"
+        One -> "eleven"
+        Two -> "twelve"
+        Three -> "thirteen"
+        Four -> "forteen"
+        Five -> "fifteen"
+        Six -> "sixteen"
+        Seven -> "sevennteen"
+        Eight -> "eighteen"
+        Nine -> "nineteen"
+    Two ->
+      showWithNonZeroDigit u $ listh "twenty"
+    Three ->
+      showWithNonZeroDigit u $ listh "thirty"
+    Four ->
+      showWithNonZeroDigit u $ listh "forty"
+    Five ->
+      showWithNonZeroDigit u $ listh "fifty"
+    Six ->
+      showWithNonZeroDigit u $ listh "sixty"
+    Seven ->
+      showWithNonZeroDigit u $ listh "seventy"
+    Eight ->
+      showWithNonZeroDigit u $ listh "eighty"
+    Nine ->
+      showWithNonZeroDigit u $ listh "ninety"
+    _ ->
+      ""
+showDigit3 (D3 h t u) =
+  showDigit h ++ (listh " hundred")
+
+showListDigit3 ::
+  Chars
+  -> Chars
+  -> List Digit3
+  -> Chars
+showListDigit3 ss ps (D1 d :. Nil)
+  | d == One = showDigit d ++ ss
+  | True = showDigit d ++ ps
+showListDigit3 _ ps l =
+  foldRight ((++) . showDigit3) Nil l ++ ps 
 
 -- Possibly convert a character to a digit.
 fromChar ::
@@ -323,5 +396,59 @@ fromChar _ =
 dollars ::
   Chars
   -> Chars
-dollars =
-  error "todo: Course.Cheque#dollars"
+dollars cs =
+  let
+    num = integer cs
+    dec =
+      if '.' `elem` cs
+        then decimal cs
+        else decimal (listh ".0")
+  in
+    showListDigit3 " dollar" " dollars" num
+    ++ listh " and "
+    ++ showListDigit3 " cent" " cents" dec
+  -- error "todo: Course.Cheque#dollars"
+
+toListDigit3 ::
+  List Digit
+  -> List Digit3
+toListDigit3 =
+  foldRight
+    (\d d3s ->
+      case d3s of
+        (D1 u :. d3s')
+          -> D2 d u :. d3s'
+        (D2 t u :. d3s') ->
+          D3 d t u :. d3s'
+        _ ->
+          D1 d :. d3s
+    )
+    Nil
+
+integer ::
+  Chars
+  -> List Digit3
+integer =
+  toListDigit3
+  . (\ds -> ifThenElse (ds == Nil) (Zero :. Nil) ds)
+  . map (\(Full d) -> d)
+  . filter (/= Empty)
+  . map fromChar
+  . takeWhile (/= '.')
+
+decimal ::
+  Chars
+  -> List Digit3
+decimal =
+    toListDigit3
+    . (\ds -> ifThenElse (ds == Nil) (Zero :. Nil) ds)
+    . dropWhile (== Zero)
+    . take 2
+    . reverse
+    . (Zero :.)
+    . dropWhile (== Zero)
+    . map (\(Full d) -> d)
+    . filter (/= Empty)
+    . map fromChar
+    . takeWhile (/= '.')
+    . reverse

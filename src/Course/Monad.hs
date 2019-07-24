@@ -115,8 +115,9 @@ instance Monad ((->) t) where
   f (a -> b)
   -> f a
   -> f b
-(<**>) =
-  (<*>)
+(<**>) f a =
+  -- (<*>) f a
+  (<$> a) =<< f
   -- error "todo: Course.Monad#(<**>)"
 
 infixl 4 <**>
