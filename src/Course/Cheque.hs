@@ -416,8 +416,8 @@ toListDigit3 =
   foldRight
     (\d d3s ->
       case d3s of
-        (D1 u :. d3s')
-          -> D2 d u :. d3s'
+        (D1 u :. d3s') ->
+          D2 d u :. d3s'
         (D2 t u :. d3s') ->
           D3 d t u :. d3s'
         _ ->
