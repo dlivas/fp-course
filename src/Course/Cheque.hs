@@ -241,6 +241,22 @@ data Digit3 =
   | D3 Digit Digit Digit
   deriving Eq
 
+toListDigit3 ::
+  List Digit
+  -> List Digit3
+toListDigit3 =
+  foldRight
+    (\d d3s ->
+      case d3s of
+        (D1 u :. d3s') ->
+          D2 d u :. d3s'
+        (D2 t u :. d3s') ->
+          D3 d t u :. d3s'
+        _ ->
+          D1 d :. d3s
+    )
+    Nil
+
 showDigit3 ::
   Digit3
   -> Chars
@@ -277,10 +293,23 @@ showDigit3 (D2 t u) =
       showWithNonZeroDigit u $ listh "eighty"
     Nine ->
       showWithNonZeroDigit u $ listh "ninety"
-    _ ->
-      ""
 showDigit3 (D3 h t u) =
-  showDigit h ++ (listh " hundred")
+  let
+    suffix' =
+      if t == Zero
+        then showDigit u
+        else showDigit3 (D2 t u)
+    suffix =
+      if suffix' == ""
+        then ""
+        else listh " and " ++ suffix'
+  in
+    showDigit h
+    ++ (listh " hundred")
+    ++ let
+        tens = showDigit3 (D2 t u)
+        in
+          ifThenElse (tens == "zero") "" (listh " and " ++ tens)
 
 showListDigit3 ::
   Chars
@@ -409,22 +438,6 @@ dollars cs =
     ++ showListDigit3 " cent" " cents" dec
   -- error "todo: Course.Cheque#dollars"
 
-toListDigit3 ::
-  List Digit
-  -> List Digit3
-toListDigit3 =
-  foldRight
-    (\d d3s ->
-      case d3s of
-        (D1 u :. d3s') ->
-          D2 d u :. d3s'
-        (D2 t u :. d3s') ->
-          D3 d t u :. d3s'
-        _ ->
-          D1 d :. d3s
-    )
-    Nil
-
 integer ::
   Chars
   -> List Digit3
@@ -440,15 +453,16 @@ decimal ::
   Chars
   -> List Digit3
 decimal =
-    toListDigit3
-    . (\ds -> ifThenElse (ds == Nil) (Zero :. Nil) ds)
-    . dropWhile (== Zero)
-    . take 2
-    . reverse
-    . (Zero :.)
-    . dropWhile (== Zero)
-    . map (\(Full d) -> d)
-    . filter (/= Empty)
-    . map fromChar
-    . takeWhile (/= '.')
-    . reverse
+  toListDigit3
+  . (\ds -> ifThenElse (ds == Nil) (Zero :. Nil) ds)
+  . dropWhile (== Zero)
+  . take 2
+  . reverse
+  . (Zero :.)
+  . dropWhile (== Zero)
+  . reverse
+  . map (\(Full d) -> d)
+  . filter (/= Empty)
+  . map fromChar
+  . drop 1
+  . dropWhile (/= '.')
