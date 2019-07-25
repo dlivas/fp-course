@@ -222,18 +222,6 @@ showWithNonZeroDigit d s =
     then s
     else s ++ "-" ++ showDigit d
 
-stripStartZeros ::
-  List Digit
-  -> List Digit
-stripStartZeros =
-  dropWhile (== Zero)
-
-stripEndZeros ::
-  List Digit
-  -> List Digit
-stripEndZeros =
-  reverse . stripStartZeros . reverse 
-
 -- A data type representing one, two or three digits, which may be useful for grouping.
 data Digit3 =
   D1 Digit
@@ -248,13 +236,12 @@ toListDigit3 =
   foldRight
     (\d d3s ->
       case d3s of
-        (D1 u :. d3s') ->
-          D2 d u :. d3s'
         (D2 t u :. d3s') ->
           D3 d t u :. d3s'
+        (D1 u :. d3s') ->
+          D2 d u :. d3s'
         _ ->
-          D1 d :. d3s
-    )
+          D1 d :. d3s)
     Nil
 
 showDigit3 ::
@@ -294,38 +281,38 @@ showDigit3 (D2 t u) =
     Nine ->
       showWithNonZeroDigit u $ listh "ninety"
 showDigit3 (D3 h t u) =
-  ifThenElse (h == Zero) "" (showDigit h ++ (listh " hundred"))
-  ++ let
-      ts = showDigit3 (D2 t u)
-      oAnd = listh $ ifThenElse (h /= Zero) " and " ""
-      in
-        ifThenElse (ts == "zero") "" (oAnd ++ ts)
+  let
+    tens = showDigit3 (D2 t u)
+    optAnd = listh $ ifThenElse (h /= Zero) " and " ""
+  in
+    ifThenElse (h == Zero) "" (showDigit h ++ (listh " hundred"))
+    ++ ifThenElse (tens == "zero") "" (optAnd ++ tens)
 
 showListDigit3 ::
   Chars
   -> Chars
   -> List Digit3
   -> Chars
-showListDigit3 ss ps (D1 d :. Nil)
-  | d == One = showDigit d ++ ss
-  | True = showDigit d ++ ps
-showListDigit3 _ ps l =
+showListDigit3 singleSuffix pluralSuffix (D1 d :. Nil) =
+  showDigit d ++ ifThenElse (d == One) singleSuffix pluralSuffix
+showListDigit3 _ pluralSuffix l =
   foldRight
     showDigit3'
     Nil
     (reverse $ zip illion (reverse l))
-  ++ ps
+  ++ pluralSuffix
   where
     showDigit3' (s, d3) d3s =
-      case d3s of
-        Nil -> 
-          showDigit3 d3
-        (d3' :. _) ->
-          let
-            str = showDigit3 d3
-            str' = ifThenElse (str == "") "" $ str ++ (listh " ") ++ s ++ (listh " ")
-          in
-            str' ++ d3s
+      let
+        str = showDigit3 d3
+        str' =
+          if (str == "")
+            then ""
+            else str ++ (listh " ") ++ s ++ (listh " ")
+      in
+        if d3s == Nil
+          then str
+          else str' ++ d3s
 
 -- Possibly convert a character to a digit.
 fromChar ::
