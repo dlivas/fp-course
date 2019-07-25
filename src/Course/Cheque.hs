@@ -259,11 +259,10 @@ toListDigit3 =
 
 showDigit3 ::
   Digit3
-  -> Bool
   -> Chars
-showDigit3 (D1 d) _ =
+showDigit3 (D1 d) =
   showDigit d
-showDigit3 (D2 t u)  _ =
+showDigit3 (D2 t u) =
   case t of
     Zero -> showDigit u
     One ->
@@ -294,11 +293,11 @@ showDigit3 (D2 t u)  _ =
       showWithNonZeroDigit u $ listh "eighty"
     Nine ->
       showWithNonZeroDigit u $ listh "ninety"
-showDigit3 (D3 h t u) b =
+showDigit3 (D3 h t u) =
   ifThenElse (h == Zero) "" (showDigit h ++ (listh " hundred"))
   ++ let
-      ts = showDigit3 (D2 t u) False
-      oAnd = listh $ ifThenElse b " and " ""
+      ts = showDigit3 (D2 t u)
+      oAnd = listh $ ifThenElse (h /= Zero) " and " ""
       in
         ifThenElse (ts == "zero") "" (oAnd ++ ts)
 
@@ -320,10 +319,10 @@ showListDigit3 _ ps l =
     showDigit3' (s, d3) d3s =
       case d3s of
         Nil -> 
-          showDigit3 d3 True
+          showDigit3 d3
         (d3' :. _) ->
           let
-            str = showDigit3 d3 False
+            str = showDigit3 d3
             str' = ifThenElse (str == "") "" $ str ++ (listh " ") ++ s ++ (listh " ")
           in
             str' ++ d3s
