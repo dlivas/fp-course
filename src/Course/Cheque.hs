@@ -294,22 +294,11 @@ showDigit3 (D2 t u) =
     Nine ->
       showWithNonZeroDigit u $ listh "ninety"
 showDigit3 (D3 h t u) =
-  let
-    suffix' =
-      if t == Zero
-        then showDigit u
-        else showDigit3 (D2 t u)
-    suffix =
-      if suffix' == ""
-        then ""
-        else listh " and " ++ suffix'
-  in
-    showDigit h
-    ++ (listh " hundred")
-    ++ let
-        tens = showDigit3 (D2 t u)
-        in
-          ifThenElse (tens == "zero") "" (listh " and " ++ tens)
+  ifThenElse (h == Zero) "" (showDigit h ++ (listh " hundred"))
+  ++ let
+      tens = showDigit3 (D2 t u)
+      in
+        ifThenElse (tens == "zero") "" (listh " and " ++ tens)
 
 showListDigit3 ::
   Chars
@@ -320,7 +309,22 @@ showListDigit3 ss ps (D1 d :. Nil)
   | d == One = showDigit d ++ ss
   | True = showDigit d ++ ps
 showListDigit3 _ ps l =
-  foldRight ((++) . showDigit3) Nil l ++ ps 
+  foldRight
+    showDigit3'
+    Nil
+    (reverse $ zip illion (reverse l))
+  ++ ps
+  where
+    showDigit3' (s, d3) d3s =
+      case d3s of
+        Nil -> 
+          showDigit3 d3
+        (d3' :. _) ->
+          let
+            str = showDigit3 d3
+            str' = ifThenElse (str == "") "" $ str ++ (listh " ") ++ s ++ (listh " ")
+          in
+            str' ++ d3s
 
 -- Possibly convert a character to a digit.
 fromChar ::
