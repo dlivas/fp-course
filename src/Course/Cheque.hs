@@ -282,11 +282,21 @@ showDigit3 (D2 t u) =
       showWithNonZeroDigit u $ listh "ninety"
 showDigit3 (D3 h t u) =
   let
-    tens = showDigit3 (D2 t u)
-    optAnd = listh $ ifThenElse (h /= Zero) " and " ""
+    tens' = showDigit3 (D2 t u)
+    (handreds, optAnd) =
+      if h == Zero
+        then
+          ("", "")
+        else
+          ( showDigit h ++ " hundred"
+          , " and ")
+
+    tens =
+      if tens' == "zero"
+        then "" 
+        else optAnd ++ tens'
   in
-    ifThenElse (h == Zero) "" (showDigit h ++ (listh " hundred"))
-    ++ ifThenElse (tens == "zero") "" (optAnd ++ tens)
+    handreds ++ tens
 
 showListDigit3 ::
   Chars
