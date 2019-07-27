@@ -267,35 +267,20 @@ show2DigitNums ::
   Digit
   -> Digit
   -> Chars
-show2DigitNums t u =
-  case t of
-    Zero ->
-      showDigit u
-    One ->
-      showDigitsPlus10 u
-    _ ->
-      showDigitTimes10 t
-      ++ if u == Zero
-          then ""
-          else "-" ++ showDigit u
+show2DigitNums Zero u = showDigit u
+show2DigitNums One u  = showDigitsPlus10 u
+show2DigitNums t Zero = showDigitTimes10 t
+show2DigitNums t u    = showDigitTimes10 t ++ "-" ++ showDigit u
 
 show3DigitNums ::
   Digit
   -> Digit
   -> Digit
   -> Chars
-show3DigitNums h t u =
-  let
-    (tens, hundredAnd) =
-      if t == Zero && u == Zero
-        then ("", " hundred") 
-        else (show2DigitNums t u, " hundred and ")
-  in
-    if h == Zero
-        then
-          tens
-        else
-          showDigit h ++ hundredAnd ++ tens
+show3DigitNums Zero Zero Zero = ""
+show3DigitNums h Zero Zero    = showDigit h ++ " hundred"
+show3DigitNums Zero t u       = show2DigitNums t u
+show3DigitNums h t u          = showDigit h ++ " hundred and " ++ show2DigitNums t u
 
 -- A data type representing one, two or three digits, which may be useful for grouping.
 data Digit3 =
@@ -307,31 +292,31 @@ data Digit3 =
 isAllZeros ::
   Digit3
   -> Bool
-isAllZeros (D1 Zero) = True
-isAllZeros (D2 Zero Zero) = True
-isAllZeros (D3 Zero Zero Zero) = True
-isAllZeros _ = False
+isAllZeros (D1 Zero)            = True
+isAllZeros (D2 Zero Zero)       = True
+isAllZeros (D3 Zero Zero Zero)  = True
+isAllZeros _                    = False
 
 hasNoHundreds ::
   Digit3
   -> Bool
 hasNoHundreds (D3 Zero _ _) = True
-hasNoHundreds _ = False
+hasNoHundreds _             = False
 
 hasNoTens ::
   Digit3
   -> Bool
-hasNoTens (D2 Zero _) = True
+hasNoTens (D2 Zero _)   = True
 hasNoTens (D3 _ Zero _) = True
-hasNoTens _ = False
+hasNoTens _             = False
 
 hasNoUnits ::
   Digit3
   -> Bool
-hasNoUnits (D1 Zero) = True
-hasNoUnits (D2 _ Zero) = True
-hasNoUnits (D3 _ _ Zero) = True
-hasNoUnits _ = False
+hasNoUnits (D1 Zero)      = True
+hasNoUnits (D2 _ Zero)    = True
+hasNoUnits (D3 _ _ Zero)  = True
+hasNoUnits _              = False
 
 toListDigit3 ::
   List Digit
@@ -491,10 +476,10 @@ dollars cs =
     dec =
       if '.' `elem` cs
         then decimal cs
-        else decimal (listh ".0")
+        else decimal ".0"
   in
     showListDigit3 " dollar" " dollars" num
-    ++ listh " and "
+    ++ " and "
     ++ showListDigit3 " cent" " cents" dec
   -- error "todo: Course.Cheque#dollars"
 
