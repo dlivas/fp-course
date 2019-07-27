@@ -297,27 +297,6 @@ isAllZeros (D2 Zero Zero)       = True
 isAllZeros (D3 Zero Zero Zero)  = True
 isAllZeros _                    = False
 
-hasNoHundreds ::
-  Digit3
-  -> Bool
-hasNoHundreds (D3 Zero _ _) = True
-hasNoHundreds _             = False
-
-hasNoTens ::
-  Digit3
-  -> Bool
-hasNoTens (D2 Zero _)   = True
-hasNoTens (D3 _ Zero _) = True
-hasNoTens _             = False
-
-hasNoUnits ::
-  Digit3
-  -> Bool
-hasNoUnits (D1 Zero)      = True
-hasNoUnits (D2 _ Zero)    = True
-hasNoUnits (D3 _ _ Zero)  = True
-hasNoUnits _              = False
-
 toListDigit3 ::
   List Digit
   -> List Digit3
@@ -344,28 +323,31 @@ showDigit3 (D3 h t u) =
   show3DigitNums h t u
 
 showListDigit3 ::
+  List Digit3
+  -> Chars
+showListDigit3 =
+  foldRight showDigit3' Nil
+  . reverse
+  . zip illion
+  . reverse
+  where
+    showDigit3' (_, d3) Nil =
+      showDigit3 d3
+    showDigit3' (ion, d3) d3s
+      | isAllZeros d3 =
+        showDigit3 d3 ++ d3s
+      | otherwise =
+        showDigit3 d3 ++ " " ++ ion ++ " " ++ d3s
+
+showListDigit3WithSuffix ::
   Chars
   -> Chars
   -> List Digit3
   -> Chars
-showListDigit3 singleSuffix pluralSuffix (D1 d :. Nil) =
-  showDigit d ++ ifThenElse (d == One) singleSuffix pluralSuffix
-showListDigit3 _ pluralSuffix l =
-  foldRight
-    showDigit3'
-    Nil
-    (reverse $ zip illion (reverse l))
-  ++ pluralSuffix
-  where
-    showDigit3' (s, d3) d3s =
-      let
-        suffix =
-          if (isAllZeros d3)
-            then d3s
-            else " " ++ s ++ " " ++ d3s
-      in
-        showDigit3 d3
-        ++ ifThenElse (d3s == Nil) "" suffix
+showListDigit3WithSuffix singleSuffix _ (D1 One :. Nil) =
+  showDigit One ++ singleSuffix
+showListDigit3WithSuffix _ pluralSuffix l =
+  showListDigit3 l ++ pluralSuffix
 
 -- Possibly convert a character to a digit.
 fromChar ::
@@ -478,9 +460,9 @@ dollars cs =
         then decimal cs
         else decimal ".0"
   in
-    showListDigit3 " dollar" " dollars" num
+    showListDigit3WithSuffix " dollar" " dollars" num
     ++ " and "
-    ++ showListDigit3 " cent" " cents" dec
+    ++ showListDigit3WithSuffix " cent" " cents" dec
   -- error "todo: Course.Cheque#dollars"
 
 integer ::
