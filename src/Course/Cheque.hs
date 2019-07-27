@@ -260,8 +260,6 @@ showDigitsPlus10 Eight =
   "eighteenn"
 showDigitsPlus10 Nine =
   "nineteen"
-showDigitsPlus10 _ =
-  ""
 
 show2DigitNums ::
   Digit
@@ -453,9 +451,11 @@ dollars ::
   Chars
   -> Chars
 dollars cs =
-  showListDigit3WithSuffix (integer cs) " dollar" " dollars"
-  ++ " and "
-  ++ showListDigit3WithSuffix (decimal cs) " cent" " cents"
+  let
+    dollars' = showListDigit3WithSuffix (integer cs) " dollar" " dollars"
+    cents' = showListDigit3WithSuffix (decimal cs) " cent" " cents"
+  in
+    dollars' ++ " and " ++ cents'
   -- error "todo: Course.Cheque#dollars"
 
 integer ::
@@ -465,9 +465,12 @@ integer =
   toListDigit3
   . (\optDs ->
       case optDs of
-        Empty -> (Zero :. Nil)
-        Full Nil -> (Zero :. Nil)
-        Full ds -> ds)
+        Empty ->
+          (Zero :. Nil)
+        Full Nil ->
+          (Zero :. Nil)
+        Full ds ->
+          ds)
   . seqOptional
   . filter (/= Empty)
   . map fromChar
@@ -480,11 +483,16 @@ decimal =
   toListDigit3
   . (\optDs ->
       case optDs of
-        Empty -> (Zero :. Nil)
-        Full Nil -> (Zero :. Nil)
-        Full (d :. Nil) -> (d :. Zero :. Nil)
-        Full (Zero :. d :. Nil) -> (d :. Nil)
-        Full ds -> ds)
+        Empty ->
+          (Zero :. Nil)
+        Full Nil ->
+          (Zero :. Nil)
+        Full (d :. Nil) ->
+          (d :. Zero :. Nil)
+        Full (Zero :. d :. Nil) ->
+          (d :. Nil)
+        Full ds ->
+          ds)
   . (take 2 <$>)
   . seqOptional
   . filter (/= Empty)
