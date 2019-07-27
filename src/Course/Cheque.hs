@@ -344,10 +344,10 @@ showListDigit3WithSuffix ::
   -> Chars
   -> List Digit3
   -> Chars
-showListDigit3WithSuffix singleSuffix _ (D1 One :. Nil) =
-  showDigit One ++ singleSuffix
-showListDigit3WithSuffix _ pluralSuffix l =
-  showListDigit3 l ++ pluralSuffix
+showListDigit3WithSuffix single _ (D1 One :. Nil) =
+  showDigit One ++ single
+showListDigit3WithSuffix _ plural l =
+  showListDigit3 l ++ plural
 
 -- Possibly convert a character to a digit.
 fromChar ::
