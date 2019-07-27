@@ -213,14 +213,89 @@ showDigit Eight =
 showDigit Nine =
   "nine"
 
-showWithNonZeroDigit ::
+showDigitTimes10 ::
+    Digit
+    -> Chars
+showDigitTimes10 One =
+  "Ten"
+showDigitTimes10 Two =
+  "twenty"
+showDigitTimes10 Three =
+  "thirty"
+showDigitTimes10 Four =
+  "forty"
+showDigitTimes10 Five =
+  "fifty"
+showDigitTimes10 Six =
+  "sixty"
+showDigitTimes10 Seven =
+  "seventy"
+showDigitTimes10 Eight =
+  "eighty"
+showDigitTimes10 Nine =
+  "ninety"
+showDigitTimes10 _ =
+  ""
+
+showDigitsPlus10 ::
   Digit
   -> Chars
+showDigitsPlus10 Zero =
+  "ten"
+showDigitsPlus10 One =
+  "eleven"
+showDigitsPlus10 Two =
+  "twelve"
+showDigitsPlus10 Three =
+  "thirteen"
+showDigitsPlus10 Four =
+  "fourteen"
+showDigitsPlus10 Five =
+  "fifteen"
+showDigitsPlus10 Six =
+  "sixteen"
+showDigitsPlus10 Seven =
+  "seventeen"
+showDigitsPlus10 Eight =
+  "eighteenn"
+showDigitsPlus10 Nine =
+  "nineteen"
+showDigitsPlus10 _ =
+  ""
+
+show2DigitNums ::
+  Digit
+  -> Digit
   -> Chars
-showWithNonZeroDigit d s =
-  if d == Zero
-    then s
-    else s ++ "-" ++ showDigit d
+show2DigitNums t u =
+  case t of
+    Zero ->
+      showDigit u
+    One ->
+      showDigitsPlus10 u
+    _ ->
+      showDigitTimes10 t
+      ++ if u == Zero
+          then ""
+          else "-" ++ showDigit u
+
+show3DigitNums ::
+  Digit
+  -> Digit
+  -> Digit
+  -> Chars
+show3DigitNums h t u =
+  let
+    (tens, hundredAnd) =
+      if t == Zero && u == Zero
+        then ("", " hundred") 
+        else (show2DigitNums t u, " hundred and ")
+  in
+    if h == Zero
+        then
+          tens
+        else
+          showDigit h ++ hundredAnd ++ tens
 
 -- A data type representing one, two or three digits, which may be useful for grouping.
 data Digit3 =
@@ -228,6 +303,35 @@ data Digit3 =
   | D2 Digit Digit
   | D3 Digit Digit Digit
   deriving Eq
+
+isAllZeros ::
+  Digit3
+  -> Bool
+isAllZeros (D1 Zero) = True
+isAllZeros (D2 Zero Zero) = True
+isAllZeros (D3 Zero Zero Zero) = True
+isAllZeros _ = False
+
+hasNoHundreds ::
+  Digit3
+  -> Bool
+hasNoHundreds (D3 Zero _ _) = True
+hasNoHundreds _ = False
+
+hasNoTens ::
+  Digit3
+  -> Bool
+hasNoTens (D2 Zero _) = True
+hasNoTens (D3 _ Zero _) = True
+hasNoTens _ = False
+
+hasNoUnits ::
+  Digit3
+  -> Bool
+hasNoUnits (D1 Zero) = True
+hasNoUnits (D2 _ Zero) = True
+hasNoUnits (D3 _ _ Zero) = True
+hasNoUnits _ = False
 
 toListDigit3 ::
   List Digit
@@ -250,53 +354,9 @@ showDigit3 ::
 showDigit3 (D1 d) =
   showDigit d
 showDigit3 (D2 t u) =
-  case t of
-    Zero -> showDigit u
-    One ->
-      case u of
-        Zero -> "ten"
-        One -> "eleven"
-        Two -> "twelve"
-        Three -> "thirteen"
-        Four -> "forteen"
-        Five -> "fifteen"
-        Six -> "sixteen"
-        Seven -> "sevennteen"
-        Eight -> "eighteen"
-        Nine -> "nineteen"
-    Two ->
-      showWithNonZeroDigit u $ listh "twenty"
-    Three ->
-      showWithNonZeroDigit u $ listh "thirty"
-    Four ->
-      showWithNonZeroDigit u $ listh "forty"
-    Five ->
-      showWithNonZeroDigit u $ listh "fifty"
-    Six ->
-      showWithNonZeroDigit u $ listh "sixty"
-    Seven ->
-      showWithNonZeroDigit u $ listh "seventy"
-    Eight ->
-      showWithNonZeroDigit u $ listh "eighty"
-    Nine ->
-      showWithNonZeroDigit u $ listh "ninety"
+  show2DigitNums t u
 showDigit3 (D3 h t u) =
-  let
-    tens' = showDigit3 (D2 t u)
-    (handreds, optAnd) =
-      if h == Zero
-        then
-          ("", "")
-        else
-          ( showDigit h ++ " hundred"
-          , " and ")
-
-    tens =
-      if tens' == "zero"
-        then "" 
-        else optAnd ++ tens'
-  in
-    handreds ++ tens
+  show3DigitNums h t u
 
 showListDigit3 ::
   Chars
@@ -314,15 +374,13 @@ showListDigit3 _ pluralSuffix l =
   where
     showDigit3' (s, d3) d3s =
       let
-        str = showDigit3 d3
-        str' =
-          if (str == "")
-            then ""
-            else str ++ (listh " ") ++ s ++ (listh " ")
+        suffix =
+          if (isAllZeros d3)
+            then d3s
+            else " " ++ s ++ " " ++ d3s
       in
-        if d3s == Nil
-          then str
-          else str' ++ d3s
+        showDigit3 d3
+        ++ ifThenElse (d3s == Nil) "" suffix
 
 -- Possibly convert a character to a digit.
 fromChar ::

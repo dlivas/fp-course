@@ -185,9 +185,9 @@ firstRepeat ::
   -> Optional a
 firstRepeat l =
   eval
-    (findM (\a -> State (\s -> (S.member a s, S.insert a s))) l) 
+    (findM (\a -> State (\s -> (a `S.member` s, a `S.insert` s))) l)
     S.empty
-  -- (flip eval S.empty)
+  -- flip eval S.empty
   -- . findM (\a -> State (\s -> (S.member a s, S.insert a s)))
   -- error "todo: Course.State#firstRepeat"
 
