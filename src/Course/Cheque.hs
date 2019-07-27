@@ -340,13 +340,13 @@ showListDigit3 =
         showDigit3 d3 ++ " " ++ ion ++ " " ++ d3s
 
 showListDigit3WithSuffix ::
-  Chars
+  List Digit3
   -> Chars
-  -> List Digit3
   -> Chars
-showListDigit3WithSuffix single _ (D1 One :. Nil) =
+  -> Chars
+showListDigit3WithSuffix (D1 One :. Nil) single _ =
   showDigit One ++ single
-showListDigit3WithSuffix _ plural l =
+showListDigit3WithSuffix l _ plural =
   showListDigit3 l ++ plural
 
 -- Possibly convert a character to a digit.
@@ -453,16 +453,9 @@ dollars ::
   Chars
   -> Chars
 dollars cs =
-  let
-    num = integer cs
-    dec =
-      if '.' `elem` cs
-        then decimal cs
-        else decimal ".0"
-  in
-    showListDigit3WithSuffix " dollar" " dollars" num
-    ++ " and "
-    ++ showListDigit3WithSuffix " cent" " cents" dec
+  showListDigit3WithSuffix (integer cs) " dollar" " dollars"
+  ++ " and "
+  ++ showListDigit3WithSuffix (decimal cs) " cent" " cents"
   -- error "todo: Course.Cheque#dollars"
 
 integer ::
@@ -470,8 +463,12 @@ integer ::
   -> List Digit3
 integer =
   toListDigit3
-  . (\ds -> ifThenElse (ds == Nil) (Zero :. Nil) ds)
-  . map (\(Full d) -> d)
+  . (\optDs ->
+      case optDs of
+        Empty -> (Zero :. Nil)
+        Full Nil -> (Zero :. Nil)
+        Full ds -> ds)
+  . seqOptional
   . filter (/= Empty)
   . map fromChar
   . takeWhile (/= '.')
@@ -481,15 +478,15 @@ decimal ::
   -> List Digit3
 decimal =
   toListDigit3
-  . (\ds -> ifThenElse (ds == Nil) (Zero :. Nil) ds)
-  . dropWhile (== Zero)
-  . take 2
-  . reverse
-  . (Zero :.)
-  . dropWhile (== Zero)
-  . reverse
-  . map (\(Full d) -> d)
+  . (\optDs ->
+      case optDs of
+        Empty -> (Zero :. Nil)
+        Full Nil -> (Zero :. Nil)
+        Full (d :. Nil) -> (d :. Zero :. Nil)
+        Full (Zero :. d :. Nil) -> (d :. Nil)
+        Full ds -> ds)
+  . (take 2 <$>)
+  . seqOptional
   . filter (/= Empty)
   . map fromChar
-  . drop 1
   . dropWhile (/= '.')
