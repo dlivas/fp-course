@@ -89,7 +89,6 @@ printFile ::
 printFile name contents =
   putStrLn ("============ " ++ name)
     *> putStrLn contents
-  -- error "todo: Course.FileIO#printFile"
 
 -- Given a list of (file name and file contents), print each.
 -- Use @printFile@.
@@ -99,8 +98,7 @@ printFiles ::
 printFiles =
   foldRight
     (\(name, contents) -> (printFile name contents *>))
-    (putStrLn "")
-  -- error "todo: Course.FileIO#printFiles"
+    (putStr "")
 
 -- Given a file name, return (file name and file contents).
 -- Use @readFile@.
@@ -108,8 +106,7 @@ getFile ::
   FilePath
   -> IO (FilePath, Chars)
 getFile name =
-  lift1 (name,) (readFile name)
-  -- error "todo: Course.FileIO#getFile"
+  (name,) <$> readFile name
 
 -- Given a list of file names, return list of (file name and file contents).
 -- Use @getFile@.
@@ -117,10 +114,10 @@ getFiles ::
   List FilePath
   -> IO (List (FilePath, Chars))
 getFiles =
-  foldRight
-    (lift2 (:.) . getFile)
-    (pure Nil)
-  -- error "todo: Course.FileIO#getFiles"
+  sequence . map getFile
+  -- foldRight
+  --   (lift2 (:.) . getFile)
+  --   (pure Nil)
 
 -- Given a file name, read it and for each line in that file, read and print contents of each.
 -- Use @getFiles@ and @printFiles@.
@@ -129,10 +126,14 @@ run ::
   -> IO ()
 run name =
   getFile name
-    >>= return . lines . snd
-    >>= getFiles
-    >>= printFiles
-  -- error "todo: Course.FileIO#run"
+  >>= return . lines . snd
+  >>= getFiles
+  >>= printFiles
+  -- do
+  --   (_, fNames) <- getFile name
+  --   let lFNames = lines fNames
+  --   files <- getFiles lFNames
+  --   printFiles files
 
 -- /Tip:/ use @getArgs@ and @run@
 main ::
@@ -144,7 +145,6 @@ main =
       putStrLn "please provide a filename"
     checkParams (filename :. _) =
       run filename
-  -- error "todo: Course.FileIO#main"
 
 ----
 
