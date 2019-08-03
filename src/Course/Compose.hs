@@ -22,7 +22,6 @@ instance (Functor f, Functor g) =>
   --   -> Compose f g b
   f <$> (Compose a) =
     Compose $ (f <$>) <$> a
-    -- error "todo: Course.Compose (<$>)#instance (Compose f g)"
 
 instance (Applicative f, Applicative g) =>
   Applicative (Compose f g) where
@@ -32,7 +31,6 @@ instance (Applicative f, Applicative g) =>
   --   Compose f g a
   pure =
     Compose . pure . pure
-    -- error "todo: Course.Compose pure#instance (Compose f g)"
 -- Implement the (<*>) function for an Applicative instance for Compose
   -- (<*>) ::
   --   Compose f g (a -> b)
@@ -40,7 +38,6 @@ instance (Applicative f, Applicative g) =>
   --   -> Compose f g b
   (Compose f) <*> (Compose a) =
     Compose $ lift2 (<*>) f a
-    -- error "todo: Course.Compose (<*>)#instance (Compose f g)"
 
 instance (Monad f, Monad g) =>
   Monad (Compose f g) where

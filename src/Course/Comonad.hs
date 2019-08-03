@@ -30,7 +30,6 @@ instance Comonad ExactlyOne where
     ExactlyOne a
     -> a
   copure (ExactlyOne a) = a
-    -- error "todo: Course.Comonad copure#instance ExactlyOne"
 
 -- | Witness that all things with (<<=) and copure also have (<$>).
 --
@@ -43,4 +42,3 @@ instance Comonad ExactlyOne where
   -> f b
 f <$$> a =
   f . copure <<= a
-  -- error "todo: Course.Comonad#(<$>)"

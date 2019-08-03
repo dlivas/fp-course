@@ -456,7 +456,6 @@ dollars cs =
     cents' = showListDigit3WithSuffix (decimal cs) " cent" " cents"
   in
     dollars' ++ " and " ++ cents'
-  -- error "todo: Course.Cheque#dollars"
 
 integer ::
   Chars

@@ -24,8 +24,7 @@ fastAnagrams str fileName =
         anagramsList = NoCaseString <$> permutations str
         results = intersectBy (==) fileWords anagramsList
       in
-        (++ ('\n' :. Nil)) . ncString <$> results
-  -- error "todo: Course.FastAnagrams#fastAnagrams"
+        map ((++ ('\n' :. Nil)) . ncString) results
 
 newtype NoCaseString =
   NoCaseString {

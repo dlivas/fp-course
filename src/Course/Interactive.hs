@@ -86,7 +86,6 @@ convertInteractive = do
   putStrLn "enter a string to convert to upper-case:"
   input <- getLine
   putStrLn $ toUpper <$> input
-  -- error "todo: Course.Interactive#convertInteractive"
 
 -- |
 --
@@ -120,7 +119,6 @@ reverseInteractive = do
   outputFile <- getLine
   input <- readFile inputFile
   writeFile outputFile $ reverse input
-  -- error "todo: Course.Interactive#reverseInteractive"
 
 -- |
 --
@@ -155,7 +153,6 @@ encodeInteractive = do
     c2EncodedStr '\t' = "%09"
     c2EncodedStr '"' = "%22"
     c2EncodedStr c = pure c
-  -- error "todo: Course.Interactive#encodeInteractive"
 
 interactive ::
   IO ()

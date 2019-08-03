@@ -137,7 +137,6 @@ jsonString =
                 Empty -> unexpectedCharParser ch'
                 Full sc ->
                   (pure . fromSpecialCharacter) sc
-  -- error "todo: Course.JsonParser#jsonString"
 
 -- | Parse a JSON rational.
 --
@@ -170,7 +169,6 @@ jsonNumber =
       case readFloats i of
         Empty  -> UnexpectedString i
         Full (n, i') -> Result i' n)
-  -- error "todo: Course.JsonParser#jsonNumber"
 
 -- | Parse a JSON true literal.
 --
@@ -185,7 +183,6 @@ jsonTrue ::
   Parser Chars
 jsonTrue =
   stringTok "true"
-  -- error "todo: Course.JsonParser#jsonTrue"
 
 -- | Parse a JSON false literal.
 --
@@ -200,7 +197,6 @@ jsonFalse ::
   Parser Chars
 jsonFalse =
   stringTok "false"
-  -- error "todo: Course.JsonParser#jsonFalse"
 
 -- | Parse a JSON null literal.
 --
@@ -215,7 +211,6 @@ jsonNull ::
   Parser Chars
 jsonNull =
   stringTok "null"
-  -- error "todo: Course.JsonParser#jsonNull"
 
 -- | Parse a JSON array.
 --
@@ -239,7 +234,6 @@ jsonArray ::
   Parser (List JsonValue)
 jsonArray =
   betweenSepbyComma '[' ']' jsonValue
-  -- error "todo: Course.JsonParser#jsonArray"
 
 -- | Parse a JSON object.
 --
@@ -266,7 +260,6 @@ jsonObject =
       charTok ':'
       value <- jsonValue
       pure (key, value)
-  -- error "todo: Course.JsonParser#jsonObject"
 
 -- | Parse a JSON value.
 --
@@ -291,7 +284,6 @@ jsonValue =
     ||| (jsonString >>= pure . JsonString)
     ||| (jsonNumber >>= pure . JsonRational)
     ||| (jsonObject >>= pure . JsonObject))
-   -- error "todo: Course.JsonParser#jsonValue"
 
 -- | Read a file into a JSON value.
 --
@@ -302,4 +294,3 @@ readJsonValue ::
 readJsonValue filePath = do
   input <- readFile filePath
   pure $ parse jsonValue input
-  -- error "todo: Course.JsonParser#readJsonValue"

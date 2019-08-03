@@ -40,8 +40,7 @@ anagrams str fileName =
         anagramsList = permutations str
         results = intersectBy equalIgnoringCase fileWords anagramsList
       in
-        (++ ('\n' :. Nil)) <$> results
-  -- error "todo: Course.Anagrams#anagrams"
+        map (++ ('\n' :. Nil)) results
 
 -- Compare two strings for equality, ignoring case
 equalIgnoringCase ::
@@ -51,4 +50,3 @@ equalIgnoringCase ::
 equalIgnoringCase =
   (==) `on` map toUpper
   -- toUpper <$> s == toUpper <$> s'
-  -- error "todo: Course.Anagrams#equalIgnoringCase"
