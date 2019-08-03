@@ -165,7 +165,7 @@ findM p (a :. t) =
         then pure (Full a)
         else findM p t
 -- 1st alternative solution that may not end:
--- findM p = (headOr Empty . map Full <$>) . filtering p
+-- findM p = lift1 (headOr Empty . map Full) . filtering p
 --
 -- 2nd alternative solution that may not end:
 -- findM p =
@@ -236,9 +236,15 @@ isHappy ::
   Integer
   -> Bool
 isHappy =
-  contains 1 . firstRepeat . produce sumSqrInts
+  contains 1
+  . firstRepeat
+  . produce sumSqrInts
   where
-    sumSqrInts = toInteger . sum . map (join (*) . digitToInt) . show'
+    sumSqrInts = 
+      toInteger
+      . sum
+      . map (join (*) . digitToInt)
+      . show'
 
 isHappyDebug ::
   Integer

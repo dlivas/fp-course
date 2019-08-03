@@ -115,6 +115,7 @@ getFiles ::
   -> IO (List (FilePath, Chars))
 getFiles =
   sequence . map getFile
+  -- An alternnative step by step solution, see the implementation of sequence:
   -- foldRight
   --   (lift2 (:.) . getFile)
   --   (pure Nil)

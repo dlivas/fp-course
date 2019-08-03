@@ -41,8 +41,7 @@ instance Functor f => Functor (StateT s f) where
     -> StateT s f a
     -> StateT s f b
   f <$> StateT t =
-    StateT $ ((\(a, s) -> (f a, s)) <$> ) . t
-    -- error "todo: Course.StateT (<$>)#instance (StateT s f)"
+    StateT $ ((\(a, s) -> (f a, s)) <$>) . t
 
 -- | Implement the `Applicative` instance for @StateT s f@ given a @Monad f@.
 --
@@ -121,7 +120,7 @@ runState' ::
   -> s
   -> (a, s)
 runState' t =
-  (\(ExactlyOne r) -> r) . (runStateT t)
+  runExactlyOne . runStateT t
 
 -- | Run the `StateT` seeded with `s` and retrieve the resulting state.
 --
@@ -133,7 +132,7 @@ execT ::
   -> s
   -> f s
 execT (StateT t) =
-  (snd <$> ) . t
+  (<$>) snd . t
 
 -- | Run the `State'` seeded with `s` and retrieve the resulting state.
 --
@@ -156,7 +155,7 @@ evalT ::
   -> s
   -> f a
 evalT (StateT t) =
-  (fst <$> ) . t
+  (<$>) fst . t
 
 -- | Run the `State'` seeded with `s` and retrieve the resulting value.
 --
@@ -204,9 +203,9 @@ distinct' ::
   List a
   -> List a
 distinct' =
-  (flip eval' S.empty)
+  flip eval' S.empty
     . filtering
-      (\a -> (state' (\s -> (S.notMember a s, S.insert a s))))
+        (\a -> (state' (\s -> (S.notMember a s, S.insert a s))))
 
 -- | Remove all duplicate elements in a `List`.
 -- However, if you see a value greater than `100` in the list,
@@ -250,8 +249,8 @@ instance Functor f => Functor (OptionalT f) where
     -> OptionalT f a
     -> OptionalT f b
   f <$> OptionalT oa =
-    OptionalT ((f <$>) <$> oa)
-
+    OptionalT (lift1 f <$> oa)
+    
 -- | Implement the `Applicative` instance for `OptionalT f` given a Monad f.
 --
 -- /Tip:/ Use `onFull` to help implement (<*>).
@@ -287,7 +286,8 @@ instance Monad f => Applicative (OptionalT f) where
     -> OptionalT f a
     -> OptionalT f b
   (OptionalT h) <*> (OptionalT a) =
-    OptionalT $ h >>= onFull (\h' -> (h' <$>) <$> a)
+    OptionalT $
+      h >>= onFull ((<$> a) . lift1)
     -- other solution:
     -- let
     --   h' Empty = pure Empty
