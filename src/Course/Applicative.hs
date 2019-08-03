@@ -50,14 +50,12 @@ instance Applicative ExactlyOne where
     -> ExactlyOne a
   pure =
     ExactlyOne
-    -- error "todo: Course.Applicative pure#instance ExactlyOne"
   (<*>) ::
     ExactlyOne (a -> b)
     -> ExactlyOne a
     -> ExactlyOne b
   ExactlyOne f <*> ExactlyOne a =
     ExactlyOne (f a)
-    -- error "todo: Course.Applicative (<*>)#instance ExactlyOne"
 
 -- | Insert into a List.
 --
@@ -71,14 +69,12 @@ instance Applicative List where
     -> List a
   pure =
     (:. Nil)
-    -- error "todo: Course.Applicative pure#instance List"
   (<*>) ::
     List (a -> b)
     -> List a
     -> List b
   fs <*> as =
     flatMap (<$> as) fs
-    -- error "todo: Course.Apply (<*>)#instance List"
 
 -- | Insert into an Optional.
 --
@@ -98,7 +94,6 @@ instance Applicative Optional where
     -> Optional a
   pure =
     Full
-    -- error "todo: Course.Applicative pure#instance Optional"
   (<*>) ::
     Optional (a -> b)
     -> Optional a
@@ -108,7 +103,6 @@ instance Applicative Optional where
   -- Empty <*> _ = Empty
   -- _ <*> Empty = Empty
   -- Full f <*> Full a = Full (f a)
-    -- error "todo: Course.Apply (<*>)#instance Optional"
 
 -- | Insert into a constant function.
 --
@@ -134,14 +128,12 @@ instance Applicative ((->) t) where
     -> ((->) t a)
   pure =
     const
-    -- error "todo: Course.Applicative pure#((->) t)"
   (<*>) ::
     ((->) t (a -> b))
     -> ((->) t a)
     -> ((->) t b)
   f <*> h =
     \x -> f x (h x)
-    -- error "todo: Course.Apply (<*>)#instance ((->) t)"
 
 -- | Apply a binary function in the environment.
 --
@@ -171,7 +163,6 @@ lift2 ::
 lift2 f a b =
   lift1 f a <*> b
   -- f <$> a <*> b
-  -- error "todo: Course.Applicative#lift2"
 
 -- | Apply a ternary function in the environment.
 -- /can be written using `lift2` and `(<*>)`./
@@ -206,7 +197,6 @@ lift3 ::
 lift3 h a b c =
   lift2 h a b <*> c
   -- h <$> a <*> b <*> c
-  -- error "todo: Course.Applicative#lift3"
 
 -- | Apply a quaternary function in the environment.
 -- /can be written using `lift3` and `(<*>)`./
@@ -242,7 +232,6 @@ lift4 ::
 lift4 h a b c d =
   lift3 h a b c <*> d
   -- h <$> a <*> b <*> c <*> d
-  -- error "todo: Course.Applicative#lift4"
 
 -- | Apply a nullary function in the environment.
 lift0 ::
@@ -251,7 +240,6 @@ lift0 ::
   -> f a
 lift0 =
   pure
-  -- error "todo: Course.Applicative#lift0"
 
 -- | Apply a unary function in the environment.
 -- /can be written using `lift0` and `(<*>)`./
@@ -271,7 +259,6 @@ lift1 ::
   -> f b
 lift1 =
   (<$>)
-  -- error "todo: Course.Applicative#lift1"
 
 -- | Apply, discarding the value of the first argument.
 -- Pronounced, right apply.
@@ -298,7 +285,6 @@ lift1 =
   -> f b
 (*>) =
   lift2 (const id)
-  -- error "todo: Course.Applicative#(*>)"
 
 -- | Apply, discarding the value of the second argument.
 -- Pronounced, left apply.
@@ -325,7 +311,6 @@ lift1 =
   -> f b
 (<*) =
   lift2 const
-  -- error "todo: Course.Applicative#(<*)"
 
 -- | Sequences a list of structures to a structure of list.
 --
@@ -351,7 +336,6 @@ sequence =
   foldRight
     (lift2 (:.))
     (pure Nil)
-  -- error "todo: Course.Applicative#sequence"
 
 -- | Replicate an effect a given number of times.
 --
@@ -378,7 +362,6 @@ replicateA ::
   -> f (List a)
 replicateA n =
   sequence . replicate n
-  -- error "todo: Course.Applicative#replicateA"
 
 -- | Filter a list with a predicate that produces an effect.
 --
