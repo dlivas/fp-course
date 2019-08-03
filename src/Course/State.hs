@@ -170,6 +170,20 @@ findM p (a :. t) =
       if b
         then pure (Full a)
         else findM p t
+-- 1st alternative solution that may not end:
+-- findM p = (headOr Empty . map Full <$>) . filtering p
+--
+-- 2nd alternative solution that may not end:
+-- findM p =
+--   foldLeft
+--     (\foa a ->
+--       (p a >>=
+--         \b ->
+--           if b
+--             then pure (Full a)
+--             else foa))
+--     (pure Empty)
+
 -- error "todo: Course.State#findM"
 
 -- | Find the first element in a `List` that repeats.
