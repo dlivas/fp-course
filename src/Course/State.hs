@@ -60,11 +60,10 @@ get ::
   State s s
 get =
   State (\s -> (s, s))
--- alternative solution:
--- get ::
---   State s s
--- get =
---   State $ (,) <*> id
+  -- alternative solution 1:
+  -- State $ (,) <*> id
+  -- alternative solution 2:
+  -- State $ join (,)
 
 -- | A `State` where the resulting state is seeded with the given value.
 --
@@ -164,13 +163,13 @@ findM p (a :. t) =
       if b
         then pure (Full a)
         else findM p t
--- 1st alternative solution that may not end:
+-- 1st alternnative solution - not working solution (explainn why):
 -- findM p = lift1 (headOr Empty . map Full) . filtering p
 --
--- 2nd alternative solution that may not end:
+-- 2nd alternnative solution:
 -- findM p =
---   foldLeft
---     (\foa a ->
+--   foldRight
+--     (\a foa ->
 --       (p a >>=
 --         \b ->
 --           if b
@@ -189,13 +188,9 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat l =
-  eval
-    (findM (\a -> State (\s -> (a `S.member` s, a `S.insert` s))) l)
-    S.empty
-  -- alternative point free solution:
-  -- flip eval S.empty
-  -- . findM (\a -> State (\s -> (S.member a s, S.insert a s)))
+firstRepeat =
+  flip eval S.empty
+  . findM (\a -> State (\s -> (S.member a s, S.insert a s)))
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.
@@ -245,14 +240,6 @@ isHappy =
       . sum
       . map (join (*) . digitToInt)
       . show'
-
-isHappyDebug ::
-  Integer
-  -> List Integer
-isHappyDebug =
-  take 10 . produce sumSqrInts
-  where
-    sumSqrInts = toInteger <$> sum <$> map (join (*) <$> digitToInt) <$> show'
 
 --
 -- The following types and functions help me to better understand State
