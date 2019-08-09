@@ -26,5 +26,6 @@ import Course.Parser as X
 import Course.Person as X
 import Course.State as X
 import Course.StateT as X
+import Course.StateExamples as Y
 import Course.Traversable as X
 import Course.Validation as X

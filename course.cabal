@@ -74,6 +74,7 @@ library
                       Course.Person
                       Course.State
                       Course.StateT
+                      Course.StateExamples
                       Course.Traversable
                       Course.Validation
 
