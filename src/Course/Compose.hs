@@ -13,29 +13,26 @@ import Course.Monad
 newtype Compose f g a =
   Compose (f (g a)) deriving (Show, Eq)
 
--- Implement a Functor instance for Compose
 instance (Functor f, Functor g) =>
     Functor (Compose f g) where
-  -- (<$>) ::
-  --   (a -> b)
-  --   -> Compose f g a
-  --   -> Compose f g b
+  (<$>) ::
+    (a -> b)
+    -> Compose f g a
+    -> Compose f g b
   f <$> (Compose a) =
     Compose $ (f <$>) <$> a
 
 instance (Applicative f, Applicative g) =>
   Applicative (Compose f g) where
--- Implement the pure function for an Applicative instance for Compose
-  -- pure ::
-  --   a ->
-  --   Compose f g a
+  pure ::
+    a ->
+    Compose f g a
   pure =
     Compose . pure . pure
--- Implement the (<*>) function for an Applicative instance for Compose
-  -- (<*>) ::
-  --   Compose f g (a -> b)
-  --   -> Compose f g a
-  --   -> Compose f g b
+  (<*>) ::
+    Compose f g (a -> b)
+    -> Compose f g a
+    -> Compose f g b
   (Compose f) <*> (Compose a) =
     Compose $ lift2 (<*>) f a
 

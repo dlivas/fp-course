@@ -37,9 +37,7 @@ instance Traversable List where
     -> List a
     -> f (List b)
   traverse f =
-    foldRight
-      (\a -> lift2 (:.) (f a))
-      (pure Nil)
+    sequence . map f
 
 instance Traversable ExactlyOne where
   traverse ::
@@ -47,7 +45,7 @@ instance Traversable ExactlyOne where
     (a -> f b)
     -> ExactlyOne a
     -> f (ExactlyOne b)
-  traverse f (ExactlyOne a)=
+  traverse f (ExactlyOne a) =
     ExactlyOne <$> f a
 
 instance Traversable Optional where
@@ -80,7 +78,6 @@ sequenceA =
 
 instance (Traversable f, Traversable g) =>
   Traversable (Compose f g) where
--- Implement the traverse function for a Traversable instance for Compose
   traverse ::
     Applicative f' =>
     (a -> f' b)
@@ -95,13 +92,11 @@ data Product f g a =
 
 instance (Functor f, Functor g) =>
   Functor (Product f g) where
--- Implement the (<$>) function for a Functor instance for Product
   f <$> (Product fa ga) =
     Product (f <$> fa) (f <$> ga)
 
 instance (Traversable f, Traversable g) =>
   Traversable (Product f g) where
--- Implement the traverse function for a Traversable instance for Product
   traverse ::
     Applicative f' =>
     (a -> f' b)
@@ -121,7 +116,6 @@ data Coproduct f g a =
 
 instance (Functor f, Functor g) =>
   Functor (Coproduct f g) where
--- Implement the (<$>) function for a Functor instance for Coproduct
   f <$> (InL fa) =
     InL (f <$> fa)
   f <$> (InR ga) =
@@ -129,7 +123,6 @@ instance (Functor f, Functor g) =>
 
 instance (Traversable f, Traversable g) =>
   Traversable (Coproduct f g) where
--- Implement the traverse function for a Traversable instance for Coproduct
   traverse ::
     Applicative f' =>
     (a -> f' b)
