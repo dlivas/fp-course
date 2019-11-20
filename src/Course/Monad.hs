@@ -69,9 +69,9 @@ instance Monad Optional where
 -- 119
 instance Monad ((->) t) where
   (=<<) ::
-    (a -> ((->) t b))
-    -> ((->) t a)
-    -> ((->) t b)
+    (a -> (->) t b)
+    -> (->) t a
+    -> (->) t b
   (=<<) =
     (<*>) . flip -- \x -> f (h x) x
 
