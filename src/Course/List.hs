@@ -56,8 +56,8 @@ foldRight f b (h :. t) = f h (foldRight f b t)
 
 foldLeft :: (b -> a -> b) -> b -> List a -> b
 foldLeft _ b Nil      = b
-foldLeft f b (h :. t) = let b' = f b h in b' `seq` foldLeft f b' t
--- foldLeft f b (h :. t) = foldLeft f (f b h) t
+-- foldLeft f b (h :. t) = let b' = f b h in b' `seq` foldLeft f b' t
+foldLeft f b (h :. t) = foldLeft f (f b h) t
 
 -- END Helper functions and data types
 
@@ -332,7 +332,7 @@ reverse =
   foldLeft
     (flip (:.))
     Nil
--- alternative solution, which one is better?:
+-- the following solution is wrong, it does not satisfy the append prop:
 -- reverse =
 --   foldRight
 --     (:.)
