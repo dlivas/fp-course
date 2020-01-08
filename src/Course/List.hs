@@ -268,6 +268,19 @@ seqOptional ((Full a) :. t) =
       Empty
     Full t' ->
       Full (a :. t')
+-- alternative solution:
+-- seqOptional =
+--   foldRight
+--     (\e ol ->
+--       case e of
+--         Empty -> Empty
+--         Full a ->
+--           case ol of
+--             Empty ->
+--               Empty
+--             Full ol' ->
+--               Full (a :. ol'))
+--     (Full Nil)
 
 -- | Find the first element in the list matching the predicate.
 --
